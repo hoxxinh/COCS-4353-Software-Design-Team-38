@@ -1,0 +1,48 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directory for environment variable configuration files
+.env
+
+# Compiled source files
+dist/
+build/
+
+# Database files
+*.sql
+*.db
+*.sqlite
+
+# MySQL related files
+*.frm
+*.ibd
+*.MYI
+*.MYD
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE specific files
+.idea/
+.vscode/
+*.code-workspace
+
+# Git specific files
+.git/
+.gitignore
+
+# Sensitive files
+config.php
