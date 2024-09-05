@@ -11,20 +11,18 @@ yarn-error.log*
 # Directory for environment variable configuration files
 .env
 
-# Compiled source files
+# Build output directories
 dist/
 build/
 
-# Database files
+# MySQL database dumps and credentials
 *.sql
 *.db
 *.sqlite
 
-# MySQL related files
-*.frm
-*.ibd
-*.MYI
-*.MYD
+# Ignore database configuration files that may contain credentials
+mysql-config.js
+db-config.js
 
 # Temporary files
 *.tmp
@@ -44,5 +42,6 @@ Thumbs.db
 .git/
 .gitignore
 
-# Sensitive files
+# Sensitive files (config files that may contain credentials)
 config.php
+config.json
