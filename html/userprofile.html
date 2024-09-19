@@ -4,7 +4,7 @@
     <title>User Profile</title>
     <h2>User Profile Management</h2>
 </head>
-<section>
+<form action="/submit-profile" method="post">
     <div>
         <label for="fullName">Full Name:</label>
         <input type="text" id="fullName" name="fullName" placeholder="Full name" maxlength="50" required>
@@ -27,7 +27,7 @@
 
     <div>
         <label for="state">State</label>
-        <select name="state" id="state">
+        <select name="state" id="state" required>
             <option value="AL">Alabama</option>
             <option value="AK">Alaska</option>
             <option value="AZ">Arizona</option>
@@ -86,6 +86,17 @@
         <input type="number" id="zipCode" name="zipCode" placeholder="Zipcode" minlength="5" maxlength="9" required>       
     </div>
 
+    <div>
+        <label for="skills">Skills:</label>
+        <select name="skills" id="skills" multiple required>
+            <option value="communication">Communication</option>
+            <option value="bilingual">Bilingual</option>
+            <option value="teamwork">Teamwork</option>
+            <option value="leadership">Leadership</option>
+            <option value="problem-solving">Problem Solving</option>
+            <option value="technical-skills">Technical Skills</option>
+        </select>
+    </div>
 
 
-</section>
+</form
