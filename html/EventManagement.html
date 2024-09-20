@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Management</title>
+</head>
+<body>
+    <h1>Event Management</h1>
+    <form action="/submit-event" method="post">
+        <label for="event-name">Event Name (required, max 100 characters):</label><br>
+        <input type="text" id="event-name" name="event-name" maxlength="100" required><br><br>
+
+        <label for="event-description">Event Description (required):</label><br>
+        <textarea id="event-description" name="event-description" rows="5" cols="50" required></textarea><br><br>
+
+        <label for="location">Location (required):</label><br>
+        <textarea id="location" name="location" rows="3" cols="50" required></textarea><br><br>
+
+        <label for="required-skills">Required Skills (required):</label><br>
+        <div id="required-skills">
+            <input type="checkbox" id="leadership" name="required-skills[]" value="leadership" required>
+            <label for="leadership">Leadership</label><br>
+        
+            <input type="checkbox" id="organization" name="required-skills[]" value="organization" required>
+            <label for="organization">Organization</label><br>
+        
+            <input type="checkbox" id="public-speaking" name="required-skills[]" value="public-speaking" required>
+            <label for="public-speaking">Public Speaking</label><br>
+        
+            <input type="checkbox" id="technical-support" name="required-skills[]" value="technical-support" required>
+            <label for="technical-support">Technical Support</label><br>
+        
+            <input type="checkbox" id="teamwork" name="required-skills[]" value="teamwork" required>
+            <label for="teamwork">Teamwork</label><br>
+        
+            <!-- Add more skills as later -->
+        </div><br>
+        
+
+        <label for="urgency">Urgency (required):</label><br>
+        <select id="urgency" name="urgency" required>
+            <option value="">--Select Urgency--</option>
+            <option value="low">Low</option>
+            <option value="medium">Medium</option>
+            <option value="high">High</option>
+        </select><br><br>
+
+        <label for="event-date">Event Date (required):</label><br>
+        <input type="date" id="event-date" name="event-date" required><br><br>
+
+        <input type="submit" value="Create Event">
+    </form>
+</body>
+</html>
