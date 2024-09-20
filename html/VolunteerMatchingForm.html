@@ -1,1 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Volunteer Matching</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            text-align: center;
+        }
+        form {
+            width: 50%;
+            margin: auto;
+            padding: 20px;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>Match Volunteers to Events</h1>
+    <form id="matchingForm">
+        <label for="volunteerName">Volunteer Name:</label>
+        <select id="volunteerName" name="volunteerName" required>
+            <option value="" disabled selected>Select a volunteer</option>
+            <option value="john">John Doe</option>
+            <option value="jane">Jane Smith</option>
+            <!-- Other volunteers can be populated dynamically here -->
+        </select>
+
+        <label for="eventName">Event Name:</label>
+        <select id="eventName" name="eventName" required>
+            <option value="" disabled selected>Select an event</option>
+            <option value="foodDrive">Food Drive</option>
+            <option value="distributionDay">Distribution Day</option>
+            <!-- Other events can be populated dynamically here -->
+        </select>
+
+        <button type="submit">Match Volunteer</button>
+    </form>
+
+    <script>
+        document.getElementById('matchingForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const volunteer = document.getElementById('volunteerName').value;
+            const eventSelected = document.getElementById('eventName').value;
+
+            if (volunteer && eventSelected) {
+                alert(`${volunteer} has been matched to ${eventSelected}`);
+                // Add code here to send the matching data to the back-end.
+            } else {
+                alert('Please select both a volunteer and an event.');
+            }
+        });
+    </script>
+</body>
+</html>
+
 
