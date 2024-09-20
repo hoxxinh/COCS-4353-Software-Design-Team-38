@@ -1,5 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <head>
     <title>User Profile</title>
     <h2>User Profile Management</h2>
@@ -98,5 +100,20 @@
         </select>
     </div>
 
+    <div>
+        <label for="preferences">Preferences:</label>
+        <textarea id="preferences" name="preferences" rows="4" cols="20" placeholder="Please enter any preferences"></textarea>
+    </div>
 
+    <div>
+        <label for="dates">Select Available Dates:</label>
+        <input type="text" id="dates" name="dates">
+        <script>
+          flatpickr("#dates", {
+            mode: "multiple",
+            dateFormat: "m-d-Y"
+          });
+        </script>
+        
+    </div>
 </form>
