@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Volunteer Matching Form</title>
+    <title>Volunteer Matching</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,13 +23,15 @@
         }
         label {
             display: block;
-            margin: 10px 0 5px;
+            margin-bottom: 10px;
+            font-weight: bold;
         }
         select {
             width: 100%;
             padding: 10px;
             margin-bottom: 20px;
             border-radius: 4px;
+            border: 1px solid #ccc;
         }
         button {
             width: 100%;
@@ -51,16 +53,17 @@
         <label for="volunteerName">Volunteer Name:</label>
         <select id="volunteerName" name="volunteerName" required>
             <option value="" disabled selected>Select a volunteer</option>
-            
-            
-            <!-- volunteers can be populated here -->
+            <option value="john">John Doe</option>
+            <option value="jane">Jane Smith</option>
+            <!-- Other volunteers can be populated dynamically here -->
         </select>
 
         <label for="eventName">Event Name:</label>
         <select id="eventName" name="eventName" required>
             <option value="" disabled selected>Select an event</option>
-            
-            <!-- events can be populated here -->
+            <option value="foodDrive">Food Drive</option>
+            <option value="distributionDay">Distribution Day</option>
+            <!-- Other events can be populated dynamically here -->
         </select>
 
         <button type="submit">Match Volunteer</button>
@@ -74,7 +77,7 @@
 
             if (volunteer && eventSelected) {
                 alert(`${volunteer} has been matched to ${eventSelected}`);
-                // Add code to save the matching information
+                // Add code here to send the matching data to the back-end.
             } else {
                 alert('Please select both a volunteer and an event.');
             }
@@ -82,4 +85,5 @@
     </script>
 </body>
 </html>
+
 
