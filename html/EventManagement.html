@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Management</title>
+    <link rel="stylesheet" href="../css/SubmitForm.css">
 </head>
 <body>
     <h1>Event Management</h1>
-    <form action="/submit-event" method="post">
+    <form id="eventForm" action="" method="post">
         <label for="event-name">Event Name (required, max 100 characters):</label><br>
         <input type="text" id="event-name" name="event-name" maxlength="100" required><br><br>
 
@@ -19,24 +20,12 @@
 
         <label for="required-skills">Required Skills (required):</label><br>
         <div id="required-skills">
-            <input type="checkbox" id="leadership" name="required-skills[]" value="leadership" required>
-            <label for="leadership">Leadership</label><br>
-        
-            <input type="checkbox" id="organization" name="required-skills[]" value="organization" required>
-            <label for="organization">Organization</label><br>
-        
-            <input type="checkbox" id="public-speaking" name="required-skills[]" value="public-speaking" required>
-            <label for="public-speaking">Public Speaking</label><br>
-        
-            <input type="checkbox" id="technical-support" name="required-skills[]" value="technical-support" required>
-            <label for="technical-support">Technical Support</label><br>
-        
-            <input type="checkbox" id="teamwork" name="required-skills[]" value="teamwork" required>
-            <label for="teamwork">Teamwork</label><br>
-        
-            <!-- Add more skills as later -->
+            <label><input type="checkbox" id="leadership" name="required-skills[]" value="leadership"> Leadership</label><br>
+            <label><input type="checkbox" id="organization" name="required-skills[]" value="organization"> Organization</label><br>
+            <label><input type="checkbox" id="public-speaking" name="required-skills[]" value="public-speaking"> Public Speaking</label><br>
+            <label><input type="checkbox" id="technical-support" name="required-skills[]" value="technical-support"> Technical Support</label><br>
+            <label><input type="checkbox" id="teamwork" name="required-skills[]" value="teamwork"> Teamwork</label><br>
         </div><br>
-        
 
         <label for="urgency">Urgency (required):</label><br>
         <select id="urgency" name="urgency" required>
@@ -51,5 +40,7 @@
 
         <input type="submit" value="Create Event">
     </form>
+
+    <script src="../js/EventValidation.js"></script>
 </body>
 </html>

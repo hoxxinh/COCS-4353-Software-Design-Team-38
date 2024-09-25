@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Profile Management</title>
+    <link rel="stylesheet" href="../css/SubmitForm.css">
 </head>
 <body>
     <h1>User Profile Management</h1>
-    <form action="/submit-profile" method="post">
+    <form id="profileForm" action="userHome.html" method="post">
         <label for="full-name">Full Name (required, max 50 characters):</label><br>
         <input type="text" id="full-name" name="full-name" maxlength="50" required><br><br>
 
@@ -34,31 +35,48 @@
 
         <label for="skills">Skills (required):</label><br>
         <div id="skills">
-            <input type="checkbox" id="coding" name="skills[]" value="coding" required>
-            <label for="coding">Coding</label><br>
+            <label for="coding">
+                <input type="checkbox" id="coding" name="skills[]" value="coding">
+                Coding
+            </label><br>
         
-            <input type="checkbox" id="design" name="skills[]" value="design" required>
-            <label for="design">Design</label><br>
+            <label for="design">
+                <input type="checkbox" id="design" name="skills[]" value="design">
+                Design
+            </label><br>
         
-            <input type="checkbox" id="marketing" name="skills[]" value="marketing" required>
-            <label for="marketing">Marketing</label><br>
+            <label for="marketing">
+                <input type="checkbox" id="marketing" name="skills[]" value="marketing">
+                Marketing
+            </label><br>
         
-            <input type="checkbox" id="communication" name="skills[]" value="communication" required>
-            <label for="communication">Communication</label><br>
+            <label for="communication">
+                <input type="checkbox" id="communication" name="skills[]" value="communication">
+                Communication
+            </label><br>
         
-            <input type="checkbox" id="problem-solving" name="skills[]" value="problem-solving" required>
-            <label for="problem-solving">Problem Solving</label><br>
-        
-            <!-- Add more skills as later -->
+            <label for="problem-solving">
+                <input type="checkbox" id="problem-solving" name="skills[]" value="problem-solving">
+                Problem Solving
+            </label><br>
         </div><br>
 
         <label for="preferences">Preferences (optional):</label><br>
         <textarea id="preferences" name="preferences" rows="4" cols="50"></textarea><br><br>
 
-        <label for="availability">Availability (required, multiple dates allowed):</label><br>
-        <input type="date" id="availability" name="availability" required multiple><br><br>
-
-        <input onclick="window.location.href = 'userHome.html';" type="submit" value="Submit Profile">
+        <label for="availability">Availability (required, select multiple days):</label><br>
+        <div id="availability">
+            <label><input type="checkbox" name="availability[]" value="Monday"> Monday</label><br>
+            <label><input type="checkbox" name="availability[]" value="Tuesday"> Tuesday</label><br>
+            <label><input type="checkbox" name="availability[]" value="Wednesday"> Wednesday</label><br>
+            <label><input type="checkbox" name="availability[]" value="Thursday"> Thursday</label><br>
+            <label><input type="checkbox" name="availability[]" value="Friday"> Friday</label><br>
+            <label><input type="checkbox" name="availability[]" value="Saturday"> Saturday</label><br>
+            <label><input type="checkbox" name="availability[]" value="Sunday"> Sunday</label><br>
+        </div><br>
+        <input type="submit" value="Submit Profile">
     </form>
+
+    <script src="../js/ProfileValidation.js"></script>
 </body>
 </html>
