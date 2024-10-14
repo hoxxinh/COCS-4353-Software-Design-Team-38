@@ -8,7 +8,8 @@
 </head>
 <body>
     <h1>User Profile Management</h1>
-    <form id="profileForm" action="userHome.html" method="post">
+    <!--<form id="profileForm" action="userHome.html" method="post">-->
+	<form id="profileForm" method="POST" action="http://localhost:3000/submitProfile">
         <label for="full-name">Full Name (required, max 50 characters):</label><br>
         <input type="text" id="full-name" name="full-name" maxlength="50" required><br><br>
 
