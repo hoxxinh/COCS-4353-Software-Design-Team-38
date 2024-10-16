@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 
 const app = express();
 app.use(express.json()); // To parse JSON requests
@@ -6,6 +7,32 @@ app.use(express.json()); // To parse JSON requests
 // Hard-coded data for testing purposes
 let userProfiles = [];
 let events = [];
+
+// Handle User Login
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+
+    // Validate input
+    if(!username || !password) {
+        return res.status(400).send('Username and password are required');
+    }
+
+    // Checks if user exists and password is correct
+    const user = userProfiles.find(user => user.username === username && user.password === password);
+    
+    if(!user){
+        return res.status(400).send('Invalid username or password!');
+    }
+
+    res.status(200).send("Successfully Logged In");
+});
+
+// Handles Registering account
+app.post('/register', (req, res) => {
+    const { username, password } = req.body;
+    userProfiles.push({ username, password});
+    res.status(200).send("Successfully Registered");
+});
 
 // Handle User Profile submission
 app.post('/submitProfile', (req, res) => {
@@ -73,6 +100,7 @@ app.post('/createEvent', (req, res) => {
 
     res.status(200).send('Event created successfully');
 });
+
 
 // Start the server
 app.listen(3000, () => console.log('Server running on port 3000'));
