@@ -4,29 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login Page</title>
-    <h2>Welcome!</h2>
 </head>
-<section>
-    <div>
-        <label for="username">Login:</label>
-        <input type="email" id="username" name="username" placeholder="Please enter your username">
-    </div>
+<body>
+    <h2>Welcome!</h2>
+    <section>
+        <form action="/login" method="POST"> 
+            <div>
+                <label for="username">Login:</label>
+                <input type="email" id="username" name="username" placeholder="Please enter your username" required>
+            </div>
 
-    <div>
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" placeholder="Please enter your password">
-    </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" placeholder="Please enter your password" required>
+            </div>
 
-    <div>
-        <form action="UserProfile.html" method="post">
-            <button type="submit">Submit</button>
+            <div>
+                <button type="submit">Submit</button>
+            </div>
         </form>
-    </div>
 
-    <a href="adminLogin.html">Admin? Please login here</a>
+        <a href="adminLogin.html">Admin? Please login here</a>
 
-    <div>
-        <a href="register.html">Create an account</a>
-    </div>
-
-</section>
+        <div>
+            <a href="register.html">Create an account</a>
+        </div>
+    </section>
+</body>
+</html>
