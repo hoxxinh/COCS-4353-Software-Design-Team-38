@@ -1,5 +1,4 @@
 import express from 'express';
-import path from 'path';
 
 const app = express();
 app.use(express.json()); // To parse JSON requests
@@ -30,6 +29,10 @@ app.post('/login', (req, res) => {
 // Handles Registering account
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
+    const existingUser = userProfiles.find(user => user.username === username);
+    if (existingUser) {
+        return res.status(400).send('User already exists!');
+    }
     userProfiles.push({ username, password});
     res.status(200).send("Successfully Registered");
 });
