@@ -1,10 +1,13 @@
-const express = require('express');
+import express from 'express';
+
 const app = express();
 app.use(express.json()); // To parse JSON requests
 
 // Hard-coded data for testing purposes
 let userProfiles = [];
+let events = [];
 
+// Handle User Profile submission
 app.post('/submitProfile', (req, res) => {
     const { fullName, address1, address2, city, state, zip, skills, preferences, availability } = req.body;
 
@@ -39,5 +42,39 @@ app.post('/submitProfile', (req, res) => {
     res.status(200).send('Profile saved successfully');
 });
 
+// Handle Event creation
+app.post('/createEvent', (req, res) => {
+    const { eventName, eventDescription, location, requiredSkills, urgency, eventDate } = req.body;
+
+    // Back-end validations
+    if (!eventName || eventName.length > 100) {
+        return res.status(400).send('Event Name is required and should not exceed 100 characters');
+    }
+    if (!eventDescription) {
+        return res.status(400).send('Event Description is required');
+    }
+    if (!location) {
+        return res.status(400).send('Location is required');
+    }
+    if (!requiredSkills || requiredSkills.length === 0) {
+        return res.status(400).send('At least one required skill is required');
+    }
+    if (!urgency) {
+        return res.status(400).send('Urgency is required');
+    }
+    if (!eventDate) {
+        return res.status(400).send('Event Date is required');
+    }
+
+    // Add event to the hard-coded list
+    events.push({
+        eventName, eventDescription, location, requiredSkills, urgency, eventDate
+    });
+
+    res.status(200).send('Event created successfully');
+});
+
 // Start the server
 app.listen(3000, () => console.log('Server running on port 3000'));
+
+export default app;
