@@ -4,7 +4,7 @@ const app = express();
 app.use(express.json()); // To parse JSON requests
 
 // Hard-coded data for testing purposes
-let userProfiles = [];
+let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
 let events = [];
 
 // Handle User Login
@@ -29,10 +29,15 @@ app.post('/login', (req, res) => {
 // Handles Registering account
 app.post('/register', (req, res) => {
     const { username, password } = req.body;
+    if(!username || !password){
+        return res.status(400).send('Username and password are required');
+    }
+
     const existingUser = userProfiles.find(user => user.username === username);
     if (existingUser) {
         return res.status(400).send('User already exists!');
     }
+    
     userProfiles.push({ username, password});
     res.status(200).send("Successfully Registered");
 });

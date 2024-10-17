@@ -177,3 +177,120 @@ describe('User Profile Management API', () => {
         });
     });
 });
+
+describe('Login', () => {
+    describe('POST /login', () => {
+        it('should log in successfully with correct username and password', (done) => {
+            const loginData = {
+                username: "johndoe@gmail.com",
+                password: "hello123"
+            };
+
+            // Use chai.request to make the HTTP request
+            chai.request(app)
+                .post('/login')
+                .send(loginData)  // Sending login credentials
+                .end((err, res) => {
+                    expect(res).to.have.status(200);
+                    expect(res.text).to.equal('Successfully Logged In');
+                    done();
+                });
+        });
+
+        it('should fail to log in with incorrect credentials', (done) => {
+            const loginData = {
+                username: "wrongemail@gmail.com",
+                password: "wrongpassword"
+            };
+
+            // Use chai.request to make the HTTP request
+            chai.request(app)
+                .post('/login')
+                .send(loginData)  // Sending incorrect login credentials
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.text).to.equal('Invalid username or password!');
+                    done();
+                });
+        });
+    });
+});
+
+describe('User Registration', () => {
+    describe('POST /register', () => {
+        it('should register a new user successfully', (done) => {
+            const newUser = {
+                username: "janedoe@gmail.com",
+                password: "password123"
+            };
+
+            chai.request(app)
+                .post('/register')
+                .send(newUser)
+                .end((err, res) => {
+                    expect(res).to.have.status(200);
+                    expect(res.text).to.equal('Successfully Registered');
+                    done();
+                });
+        });
+
+        it('should fail if the user already exists', (done) => {
+            const existingUser = {
+                username: "janedoe@gmail.com",  // Same username as in previous test
+                password: "password123"
+            };
+
+            chai.request(app)
+                .post('/register')
+                .send(existingUser)
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.text).to.equal('User already exists!');
+                    done();
+                });
+        });
+
+        it('should fail if username is missing', (done) => {
+            const newUser = {
+                password: "password123"  // Missing username
+            };
+
+            chai.request(app)
+                .post('/register')
+                .send(newUser)
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.text).to.equal('Username and password are required');
+                    done();
+                });
+        });
+
+        it('should fail if password is missing', (done) => {
+            const newUser = {
+                username: "janedoe@gmail.com"  // Missing password
+            };
+
+            chai.request(app)
+                .post('/register')
+                .send(newUser)
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.text).to.equal('Username and password are required');
+                    done();
+                });
+        });
+
+        it('should fail if both username and password are missing', (done) => {
+            chai.request(app)
+                .post('/register')
+                .send({})  // Missing both username and password
+                .end((err, res) => {
+                    expect(res).to.have.status(400);
+                    expect(res.text).to.equal('Username and password are required');
+                    done();
+                });
+        });
+    });
+});
+
+
