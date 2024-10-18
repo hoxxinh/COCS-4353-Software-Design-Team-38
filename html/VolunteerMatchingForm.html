@@ -53,31 +53,66 @@
         <label for="volunteerName">Volunteer Name:</label>
         <select id="volunteerName" name="volunteerName" required>
             <option value="" disabled selected>Select a volunteer</option>
-            <option value="john">John Doe</option>
-            <option value="jane">Jane Smith</option>
-            <!-- Other volunteers can be populated dynamically here -->
+            <!-- Volunteers will be populated here dynamically -->
         </select>
 
         <label for="eventName">Event Name:</label>
         <select id="eventName" name="eventName" required>
             <option value="" disabled selected>Select an event</option>
-            <option value="foodDrive">Food Drive</option>
-            <option value="distributionDay">Distribution Day</option>
-            <!-- Other events can be populated dynamically here -->
+            <!-- Events will be populated here dynamically -->
         </select>
 
         <button type="submit">Match Volunteer</button>
     </form>
 
     <script>
+        // Populate volunteer dropdown
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/volunteers')
+                .then(response => response.json())
+                .then(volunteers => {
+                    const volunteerSelect = document.getElementById('volunteerName');
+                    volunteers.forEach(volunteer => {
+                        const option = document.createElement('option');
+                        option.value = volunteer.id;
+                        option.text = volunteer.name;
+                        volunteerSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching volunteers:', error));
+
+            // Populate event dropdown
+            fetch('/events')
+                .then(response => response.json())
+                .then(events => {
+                    const eventSelect = document.getElementById('eventName');
+                    events.forEach(event => {
+                        const option = document.createElement('option');
+                        option.value = event.id;
+                        option.text = event.name;
+                        eventSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching events:', error));
+        });
+
+        // Handle form submission
         document.getElementById('matchingForm').addEventListener('submit', function(event) {
             event.preventDefault();
-            const volunteer = document.getElementById('volunteerName').value;
-            const eventSelected = document.getElementById('eventName').value;
+            const volunteerId = document.getElementById('volunteerName').value;
+            const eventId = document.getElementById('eventName').value;
 
-            if (volunteer && eventSelected) {
-                alert(`${volunteer} has been matched to ${eventSelected}`);
-                // Add code here to send the matching data to the back-end.
+            if (volunteerId && eventId) {
+                fetch('/match', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ volunteerId, eventId })
+                })
+                .then(response => response.json())
+                .then(data => alert(data.message))
+                .catch(error => console.error('Error:', error));
             } else {
                 alert('Please select both a volunteer and an event.');
             }
@@ -85,5 +120,6 @@
     </script>
 </body>
 </html>
+
 
 
