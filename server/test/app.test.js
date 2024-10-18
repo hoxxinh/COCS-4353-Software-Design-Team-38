@@ -293,30 +293,94 @@ describe('User Registration', () => {
     });
 });
 describe('Volunteer History API', () => {
-    it('should return a list of volunteer history', (done) => {
+    it('should return a list of volunteer history successfully', (done) => {
         chai.request(app)
             .get('/volunteer/history')
             .end((err, res) => {
                 expect(res).to.have.status(200);
                 expect(res.body).to.be.an('array');
-                expect(res.body.length).to.be.above(0);
+                expect(res.body.length).to.be.above(0);  // Ensure there's at least one record
+                res.body.forEach(item => {
+                    expect(item).to.have.property('eventName');
+                    expect(item).to.have.property('description');
+                    expect(item).to.have.property('location');
+                    expect(item).to.have.property('date');
+                    expect(item).to.have.property('status');
+                });
+                done();
+            });
+    });
+
+    it('should return an empty list if no volunteer history is available', (done) => {
+        chai.request(app)
+            .get('/volunteer/history')
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.be.an('array').that.is.empty;
                 done();
             });
     });
 });
 describe('Volunteer Matching API', () => {
-    it('should match a volunteer to an event', (done) => {
-        const matchData = { volunteerId: 'nigel', eventId: 'foodDrive' };
+    it('should match a volunteer to an event successfully', (done) => {
+        const matchingData = {
+            volunteerId: 'nigel',
+            eventId: 'foodDrive'
+        };
+
         chai.request(app)
             .post('/match')
-            .send(matchData)
+            .send(matchingData)
             .end((err, res) => {
-                expect(res).to.have.status(200);
+                expect(res).to.have.status(200);  // Check if the status is 200 OK
                 expect(res.body).to.have.property('message');
-                expect(res.body.message).to.equal('Volunteer Nigel Hart matched to event Food Drive');
+                expect(res.body.message).to.equal('Volunteer Nigel has been matched to event foodDrive');
+                done();
+            });
+    });
+
+    it('should fail if volunteerId or eventId is missing', (done) => {
+        const incompleteData = {
+            volunteerId: 'john'  // eventId is missing
+        };
+
+        chai.request(app)
+            .post('/match')
+            .send(incompleteData)
+            .end((err, res) => {
+                expect(res).to.have.status(400);  // Check for 400 Bad Request
+                expect(res.body).to.have.property('error');
+                expect(res.body.error).to.equal('Event ID is required');
+                done();
+            });
+    });
+
+    it('should fail if both volunteerId and eventId are missing', (done) => {
+        chai.request(app)
+            .post('/match')
+            .send({})
+            .end((err, res) => {
+                expect(res).to.have.status(400);
+                expect(res.body).to.have.property('error');
+                expect(res.body.error).to.equal('Volunteer ID and Event ID are required');
+                done();
+            });
+    });
+
+    it('should fail if the volunteer or event does not exist', (done) => {
+        const nonExistentData = {
+            volunteerId: 'nonExistentVolunteer',
+            eventId: 'nonExistentEvent'
+        };
+
+        chai.request(app)
+            .post('/match')
+            .send(nonExistentData)
+            .end((err, res) => {
+                expect(res).to.have.status(404);  // Check for 404 Not Found
+                expect(res.body).to.have.property('error');
+                expect(res.body.error).to.equal('Volunteer or event not found');
                 done();
             });
     });
 });
-
-
