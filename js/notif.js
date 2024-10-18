@@ -1,10 +1,24 @@
+const nodemailer = require('nodemailer');
 
-const notificationCount = document.getElementById('notification-count');
-const notificationList = document.getElementById('notifications-list');
-const clearAllButton = document.getElementById('clear-all');
+notificationCount = document.getElementById('notification-count');
+notificationList = document.getElementById('notifications-list');
+clearAllButton = document.getElementById('clear-all');
 
 
 let notifications = []
+
+// Add new notifications to front of array
+function addNotification(type, message) {
+    let newId;
+    if (notifications.length > 0) {
+        newId = notifications[notifications.length - 1].id + 1;
+    } else {
+        newId = 1;
+    }
+    notifications.unshift({ id: newId, type, message, isNew: true });
+    Notifications();
+    updateNotificationCount();
+}
 
 // Displays notifications
 function Notifications() {
@@ -28,19 +42,6 @@ function Notifications() {
     }
 }
 
-// Add new notifications to front of array
-function addNotification(type, message) {
-    let newId;
-    if (notifications.length > 0) {
-        newId = notifications[notifications.length - 1].id + 1;
-    } else {
-        newId = 1;
-    }
-    notifications.unshift({ id: newId, type, message, isNew: true });
-    Notifications();
-    updateNotificationCount();
-}
-
 // Updates number display of notifications
 function updateNotificationCount() {
     let newNotificationCount = notifications.filter(n => n.isNew).length;
@@ -48,8 +49,37 @@ function updateNotificationCount() {
 }
 
 // Clears all notifications and updates count
-clearAllButton.addEventListener('click', () => {
-    notifications.length = 0;;
-    Notifications();
-    updateNotificationCount();
+if (clearAllButton) {
+    clearAllButton.addEventListener('click', () => {
+      notifications.length = 0;
+      Notifications();
+      updateNotificationCount();
+    });
+  }
+
+// Transporter object using the default SMTP transport for Gmail
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'test-email@gmail.com', // Fake email for now
+        pass: 'test-password' // Fake password
+    }
 });
+
+function sendEmail(toEmail, subject, textMessage) {
+    const mailOptions = {
+        from: 'sender-email@gmail.com', 
+        to: toEmail,
+        subject: subject, 
+        text: textMessage,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return console.log(error);
+        }
+        console.log('Email sent: ' + info.response);
+    });
+}
+
+  
