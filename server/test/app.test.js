@@ -292,5 +292,31 @@ describe('User Registration', () => {
         });
     });
 });
+describe('Volunteer History API', () => {
+    it('should return a list of volunteer history', (done) => {
+        chai.request(app)
+            .get('/volunteer/history')
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.be.an('array');
+                expect(res.body.length).to.be.above(0);
+                done();
+            });
+    });
+});
+describe('Volunteer Matching API', () => {
+    it('should match a volunteer to an event', (done) => {
+        const matchData = { volunteerId: 'nigel', eventId: 'foodDrive' };
+        chai.request(app)
+            .post('/match')
+            .send(matchData)
+            .end((err, res) => {
+                expect(res).to.have.status(200);
+                expect(res.body).to.have.property('message');
+                expect(res.body.message).to.equal('Volunteer Nigel Hart matched to event Food Drive');
+                done();
+            });
+    });
+});
 
 
