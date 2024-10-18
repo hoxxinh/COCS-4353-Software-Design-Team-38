@@ -45,23 +45,32 @@
             </tr>
         </thead>
         <tbody id="historyTableBody">
-            <tr>
-                <td>Food Drive</td>
-                <td>Organized a food drive at the community center.</td>
-                <td>Community Center</td>
-                <td>2023-09-15</td>
-                <td>Completed</td>
-            </tr>
-            <tr>
-                <td>Distribution Day</td>
-                <td>Distributed food to families in need.</td>
-                <td>Local Church</td>
-                <td>2023-10-05</td>
-                <td>Pending</td>
-            </tr>
-            <!-- More history data can be added dynamically here -->
+            <!-- Dynamic content will go here -->
         </tbody>
     </table>
+
+    <!-- JavaScript to fetch data from backend -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/volunteer/history')  // Change this URL to match your backend route
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('historyTableBody');
+                    tableBody.innerHTML = '';  // Clear any existing table rows
+
+                    data.forEach(item => {
+                        const row = `<tr>
+                            <td>${item.eventName}</td>
+                            <td>${item.description}</td>
+                            <td>${item.location}</td>
+                            <td>${item.date}</td>
+                            <td>${item.status}</td>
+                        </tr>`;
+                        tableBody.innerHTML += row;
+                    });
+                })
+                .catch(error => console.error('Error fetching volunteer history:', error));
+        });
+    </script>
 </body>
 </html>
-
