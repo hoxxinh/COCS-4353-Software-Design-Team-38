@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "app.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha",
+    "coverage": "nyc npm test"
   },
   "keywords": [],
   "author": "",
@@ -11,11 +12,13 @@
   "description": "",
   "type": "module",
   "dependencies": {
-    "express": "^4.21.1"
+    "express": "^4.21.1",
+    "mysql": "^2.18.1"
   },
   "devDependencies": {
     "chai": "^5.1.1",
     "chai-http": "^4.4.0",
-    "mocha": "^10.2.0"
+    "mocha": "^10.2.0",
+    "nyc": "^17.1.0"
   }
 }
