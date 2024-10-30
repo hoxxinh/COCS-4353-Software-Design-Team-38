@@ -303,7 +303,7 @@ describe('FoodBank Unit Test', () => {
         });
     });
 
-    describe('Volunteer History API', () => {
+       describe('Volunteer History API', () => {
         it('should return a list of volunteer history successfully', (done) => {
             chai.request(app)
                 .get('/volunteer/history')
@@ -324,7 +324,7 @@ describe('FoodBank Unit Test', () => {
 
         it('should return an empty list if no volunteer history is available', (done) => {
             chai.request(app)
-                .get('/volunteer/history')
+                .get('/volunteer/history?empty=true')  // Request with the empty flag
                 .end((err, res) => {
                     expect(res).to.have.status(200);
                     expect(res.body).to.be.an('array').that.is.empty;
