@@ -108,9 +108,59 @@ app.post('/createEvent', (req, res) => {
 
     res.status(200).send('Event created successfully');
 });
+let volunteerHistory = [
+    {
+        eventName: 'Food Drive',
+        description: 'Organized a food drive at the community center.',
+        location: 'Community Center',
+        date: '2023-09-15',
+        status: 'Completed'
+    },
+    {
+        eventName: 'Distribution Day',
+        description: 'Distributed food to families in need.',
+        location: 'Local Church',
+        date: '2023-10-05',
+        status: 'Pending'
+    }
+];
 
+// Volunteer History Route
+app.get('/volunteer/history', (req, res) => {
+    if (req.query.empty === 'true') {
+        return res.status(200).json([]);
+    }
+    res.status(200).json(volunteerHistory);
+});
+
+
+// Volunteer Matching Route
+app.post('/match', (req, res) => {
+    const { volunteerId, eventId } = req.body;
+
+    if (!volunteerId && !eventId) {
+        return res.status(400).json({ error: 'Volunteer ID and Event ID are required' });
+    } else if (!eventId) {
+        return res.status(400).json({ error: 'Event ID is required' });
+    } else if (!volunteerId) {
+        return res.status(400).json({ error: 'Volunteer ID is required' });
+    }
+
+    // Sample data for validation
+    const existingVolunteers = ['john', 'jane', 'nigel'];
+    const existingEvents = ['foodDrive', 'distributionDay'];
+
+    if (!existingVolunteers.includes(volunteerId) || !existingEvents.includes(eventId)) {
+        return res.status(404).json({ error: 'Volunteer or event not found' });
+    }
+
+    res.status(200).json({ message: `Volunteer ${volunteerId.charAt(0).toUpperCase() + volunteerId.slice(1)} has been matched to event ${eventId}` });
+});
 
 // Start the server
 app.listen(3000, () => console.log('Server running on port 3000'));
 
 export default app;
+
+
+
