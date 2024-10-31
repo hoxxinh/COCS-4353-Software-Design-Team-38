@@ -238,26 +238,27 @@ app.post('/match', (req, res) => {
         return res.status(400).json({ error: 'Volunteer ID and Event ID are required' });
     }
 
-    // Check if both volunteer and event exist in the database
-    connection.query(
-        `SELECT * FROM UserProfile WHERE user_id = ?;
-         SELECT * FROM EventDetails WHERE event_id = ?;`,
-        [volunteerId, eventId],
-        (err, results) => {
+    // First, check if the volunteer exists
+    connection.query('SELECT * FROM UserProfile WHERE user_id = ?', [volunteerId], (err, volunteerResults) => {
+        if (err) {
+            console.error('Error fetching volunteer:', err);
+            return res.status(500).json({ error: 'Server error' });
+        }
+        if (volunteerResults.length === 0) {
+            return res.status(404).json({ error: 'Volunteer not found' });
+        }
+
+        // Next, check if the event exists
+        connection.query('SELECT * FROM EventDetails WHERE event_id = ?', [eventId], (err, eventResults) => {
             if (err) {
-                console.error('Error fetching data:', err);
+                console.error('Error fetching event:', err);
                 return res.status(500).json({ error: 'Server error' });
             }
-
-            const [volunteer, event] = results;
-            if (!volunteer.length) {
-                return res.status(404).json({ error: 'Volunteer not found' });
-            }
-            if (!event.length) {
+            if (eventResults.length === 0) {
                 return res.status(404).json({ error: 'Event not found' });
             }
 
-            // If found, insert into VolunteerHistory as a "Pending" match
+            // If both exist, insert a new entry into VolunteerHistory
             connection.query(
                 'INSERT INTO VolunteerHistory (user_id, event_id, participation_status, feedback) VALUES (?, ?, "Pending", "")',
                 [volunteerId, eventId],
@@ -269,9 +270,10 @@ app.post('/match', (req, res) => {
                     res.status(200).json({ message: `Volunteer ${volunteerId} has been matched to event ${eventId}` });
                 }
             );
-        }
-    );
+        });
+    });
 });
+
 
 // Start the server
 app.listen(3000, () => console.log('Server running on port 3000'));
