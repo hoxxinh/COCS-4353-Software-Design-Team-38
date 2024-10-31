@@ -208,28 +208,69 @@ app.get('/volunteer/history', (req, res) => {
     res.status(200).json(volunteerHistory);
 });
 
+// Volunteer History Route
+app.get('/volunteer/history', (req, res) => {
+    const { userId } = req.query;  // Expecting a query parameter to identify the volunteer
+
+    if (!userId) {
+        return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Query the database to fetch volunteer history for a specific user
+    connection.query(
+        'SELECT * FROM VolunteerHistory WHERE user_id = ?',
+        [userId],
+        (err, results) => {
+            if (err) {
+                console.error('Error fetching volunteer history:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
+            res.status(200).json(results);
+        }
+    );
+});
 
 // Volunteer Matching Route
 app.post('/match', (req, res) => {
     const { volunteerId, eventId } = req.body;
 
-    if (!volunteerId && !eventId) {
+    if (!volunteerId || !eventId) {
         return res.status(400).json({ error: 'Volunteer ID and Event ID are required' });
-    } else if (!eventId) {
-        return res.status(400).json({ error: 'Event ID is required' });
-    } else if (!volunteerId) {
-        return res.status(400).json({ error: 'Volunteer ID is required' });
     }
 
-    // Sample data for validation
-    const existingVolunteers = ['john', 'jane', 'nigel'];
-    const existingEvents = ['foodDrive', 'distributionDay'];
+    // Check if both volunteer and event exist in the database
+    connection.query(
+        `SELECT * FROM UserProfile WHERE user_id = ?;
+         SELECT * FROM EventDetails WHERE event_id = ?;`,
+        [volunteerId, eventId],
+        (err, results) => {
+            if (err) {
+                console.error('Error fetching data:', err);
+                return res.status(500).json({ error: 'Server error' });
+            }
 
-    if (!existingVolunteers.includes(volunteerId) || !existingEvents.includes(eventId)) {
-        return res.status(404).json({ error: 'Volunteer or event not found' });
-    }
+            const [volunteer, event] = results;
+            if (!volunteer.length) {
+                return res.status(404).json({ error: 'Volunteer not found' });
+            }
+            if (!event.length) {
+                return res.status(404).json({ error: 'Event not found' });
+            }
 
-    res.status(200).json({ message: `Volunteer ${volunteerId.charAt(0).toUpperCase() + volunteerId.slice(1)} has been matched to event ${eventId}` });
+            // If found, insert into VolunteerHistory as a "Pending" match
+            connection.query(
+                'INSERT INTO VolunteerHistory (user_id, event_id, participation_status, feedback) VALUES (?, ?, "Pending", "")',
+                [volunteerId, eventId],
+                (err) => {
+                    if (err) {
+                        console.error('Error inserting into VolunteerHistory:', err);
+                        return res.status(500).json({ error: 'Server error' });
+                    }
+                    res.status(200).json({ message: `Volunteer ${volunteerId} has been matched to event ${eventId}` });
+                }
+            );
+        }
+    );
 });
 
 // Start the server
