@@ -234,8 +234,12 @@ app.get('/volunteer/history', (req, res) => {
 app.post('/match', (req, res) => {
     const { volunteerId, eventId } = req.body;
 
-    if (!volunteerId || !eventId) {
-        return res.status(400).json({ error: 'Volunteer ID and Event ID are required' });
+    // Check if volunteerId and eventId are provided, with specific messages for each
+    if (!volunteerId) {
+        return res.status(400).json({ error: 'Volunteer ID is required' });
+    }
+    if (!eventId) {
+        return res.status(400).json({ error: 'Event ID is required' });
     }
 
     // First, check if the volunteer exists
@@ -245,7 +249,7 @@ app.post('/match', (req, res) => {
             return res.status(500).json({ error: 'Server error' });
         }
         if (volunteerResults.length === 0) {
-            return res.status(404).json({ error: 'Volunteer not found' });
+            return res.status(404).json({ error: 'Volunteer or event not found' });
         }
 
         // Next, check if the event exists
@@ -255,7 +259,7 @@ app.post('/match', (req, res) => {
                 return res.status(500).json({ error: 'Server error' });
             }
             if (eventResults.length === 0) {
-                return res.status(404).json({ error: 'Event not found' });
+                return res.status(404).json({ error: 'Volunteer or event not found' });
             }
 
             // If both exist, insert a new entry into VolunteerHistory
