@@ -1,11 +1,29 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
 import path from 'path';
+import mysql from 'mysql';
 import { fileURLToPath } from 'url';
 
 const app = express();
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
+
+// Create a connection to the MySQL database hosted on AWS
+const connection = mysql.createConnection({
+    host: 'group38.cbuiegiyoskb.us-east-2.rds.amazonaws.com',  // AWS RDS endpoint
+    user: 'group38',  // Your MySQL username
+    password: 'COSC4353group38',  // Your MySQL password
+    database: 'FoodBank'  // The name of the database you created
+});
+
+// Connect to the database
+connection.connect((err) => {
+    if (err) {
+        console.error('Database connection failed:', err.stack);
+        return;
+    }
+    console.log('Connected to database.');
+});
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,8 +36,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../html', 'login.html'));
 });
 // Hard-coded data for testing purposes
-let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
-let events = [];
+//let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
+//let events = [];
 
 // Handle User Login
 app.post('/login', (req, res) => {
@@ -31,14 +49,34 @@ app.post('/login', (req, res) => {
     }
 
     // Checks if user exists and password is correct
-    const user = userProfiles.find(user => user.username === username && user.password === password);
+    /*const user = userProfiles.find(user => user.username === username && user.password === password);
     
+
     if(!user){
         return res.status(400).send('Invalid username or password!');
-    }
+    }*/
+
+    // Query database
+    connection.query('SELECT * FROM loginInfo WHERE username = ?',[username], async(err,results) => {
+        if(err) {
+            console.error('ERROR', err);
+            return res.status(500).send('Server error');
+        }
+
+        if(results.length === 0) {
+            return res.status(400).send('Invalid username or password!');
+        }
+
+        const hashedPass = results[0].password_hash;
+        // Check if password matches the hashed password in database
+        const isMatch = await bcrypt.compare(password, hashedPass);
+        if(!isMatch){
+            return res.status(400).send('Invalid username or password!');
+        }
+        res.redirect('userHome.html');
+    });
 
     //res.status(200).send("Successfully Logged In");
-    res.redirect('userHome.html');
 });
 
 // Handles Registering account
@@ -48,13 +86,33 @@ app.post('/register', async (req, res) => {
         return res.status(400).send('Username and password are required');
     }
 
-    const existingUser = userProfiles.find(user => user.username === username);
+    /*const existingUser = userProfiles.find(user => user.username === username);
     if (existingUser) {
         return res.status(400).send('User already exists!');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     userProfiles.push({ username, password: hashedPassword});
-    res.status(200).send("Successfully Registered");
+    res.status(200).send("Successfully Registered");*/
+
+    connection.query('SELECT * FROM loginInfo WHERE username = ?' ,[username], async(err,results) => {
+        if(err) {
+            console.error('ERROR', err);
+            return res.status(500).send('Server error');
+        }
+        
+        if(results.length > 0) {
+            return res.status(400).send('User already exists!');
+        }
+
+        const hashedPass = await bcrypt.hash(password,10);
+        connection.query('INSERT INTO loginInfo (username, password_hash) VALUES(?, ?)',[username, hashedPass], (err) => {
+            if(err) {
+                console.error('Error creating user', err);
+                return res.status(500).send('Server error');
+            }
+            res.status(200).send('Successfully Registered');
+        });
+    });
 });
 
 // Handle User Profile submission
