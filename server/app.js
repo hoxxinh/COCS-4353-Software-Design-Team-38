@@ -1,5 +1,5 @@
 import express from 'express';
-
+import bcrypt from 'bcrypt';
 const app = express();
 app.use(express.json()); // To parse JSON requests
 
@@ -27,7 +27,7 @@ app.post('/login', (req, res) => {
 });
 
 // Handles Registering account
-app.post('/register', (req, res) => {
+app.post('/register', async (req, res) => {
     const { username, password } = req.body;
     if(!username || !password){
         return res.status(400).send('Username and password are required');
@@ -37,8 +37,8 @@ app.post('/register', (req, res) => {
     if (existingUser) {
         return res.status(400).send('User already exists!');
     }
-    
-    userProfiles.push({ username, password});
+    const hashedPassword = await bcrypt.hash(password, 10);
+    userProfiles.push({ username, password: hashedPassword});
     res.status(200).send("Successfully Registered");
 });
 
