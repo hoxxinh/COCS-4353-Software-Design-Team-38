@@ -56,7 +56,7 @@ app.post('/login', (req, res) => {
         return res.status(400).send('Invalid username or password!');
     }*/
 
-    // Query database
+    // Query database to see if account is valid or not
     connection.query('SELECT * FROM loginInfo WHERE username = ?',[username], async(err,results) => {
         if(err) {
             console.error('ERROR', err);
@@ -94,6 +94,7 @@ app.post('/register', async (req, res) => {
     userProfiles.push({ username, password: hashedPassword});
     res.status(200).send("Successfully Registered");*/
 
+    // Query table to see if account exists or not
     connection.query('SELECT * FROM loginInfo WHERE username = ?' ,[username], async(err,results) => {
         if(err) {
             console.error('ERROR', err);
@@ -103,7 +104,8 @@ app.post('/register', async (req, res) => {
         if(results.length > 0) {
             return res.status(400).send('User already exists!');
         }
-
+        
+        // Hashes password and stores into the table
         const hashedPass = await bcrypt.hash(password,10);
         connection.query('INSERT INTO loginInfo (username, password_hash) VALUES(?, ?)',[username, hashedPass], (err) => {
             if(err) {
