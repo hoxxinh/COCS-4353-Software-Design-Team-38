@@ -1,8 +1,22 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const app = express();
 app.use(express.json()); // To parse JSON requests
+app.use(express.urlencoded({ extended: true })); // To parse form data
 
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(express.static(path.join(__dirname, '../html')));
+
+// Serve the default login page when accessing root URL
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../html', 'login.html'));
+});
 // Hard-coded data for testing purposes
 let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
 let events = [];
@@ -23,7 +37,8 @@ app.post('/login', (req, res) => {
         return res.status(400).send('Invalid username or password!');
     }
 
-    res.status(200).send("Successfully Logged In");
+    //res.status(200).send("Successfully Logged In");
+    res.redirect('userHome.html');
 });
 
 // Handles Registering account
