@@ -303,7 +303,7 @@ describe('FoodBank Unit Test', () => {
         });
     });
 
-       describe('Volunteer History API', () => {
+    describe('Volunteer History API', () => {
         it('should return a list of volunteer history successfully', (done) => {
             chai.request(app)
                 .get('/volunteer/history')
