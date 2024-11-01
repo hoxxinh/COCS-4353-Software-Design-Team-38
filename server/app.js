@@ -49,15 +49,15 @@ app.post('/login', (req, res) => {
     }
 
     // Checks if user exists and password is correct
-    /*const user = userProfiles.find(user => user.username === username && user.password === password);
+    const user = userProfiles.find(user => user.username === username && user.password === password);
     
 
     if(!user){
         return res.status(400).send('Invalid username or password!');
-    }*/
+    }
 
     // Query database to see if account is valid or not
-    connection.query('SELECT * FROM loginInfo WHERE username = ?',[username], async(err,results) => {
+    /*connection.query('SELECT * FROM loginInfo WHERE username = ?',[username], async(err,results) => {
         if(err) {
             console.error('ERROR', err);
             return res.status(500).send('Server error');
@@ -74,9 +74,9 @@ app.post('/login', (req, res) => {
             return res.status(400).send('Invalid username or password!');
         }
         res.redirect('userHome.html');
-    });
+    });*/
 
-    //res.status(200).send("Successfully Logged In");
+    res.status(200).send("Successfully Logged In");
 });
 
 // Handles Registering account
@@ -86,16 +86,16 @@ app.post('/register', async (req, res) => {
         return res.status(400).send('Username and password are required');
     }
 
-    /*const existingUser = userProfiles.find(user => user.username === username);
+    const existingUser = userProfiles.find(user => user.username === username);
     if (existingUser) {
         return res.status(400).send('User already exists!');
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     userProfiles.push({ username, password: hashedPassword});
-    res.status(200).send("Successfully Registered");*/
+    res.status(200).send("Successfully Registered");
 
     // Query table to see if account exists or not
-    connection.query('SELECT * FROM loginInfo WHERE username = ?' ,[username], async(err,results) => {
+    /*connection.query('SELECT * FROM loginInfo WHERE username = ?' ,[username], async(err,results) => {
         if(err) {
             console.error('ERROR', err);
             return res.status(500).send('Server error');
@@ -114,7 +114,7 @@ app.post('/register', async (req, res) => {
             }
             res.status(200).send('Successfully Registered');
         });
-    });
+    });*/
 });
 
 // Handle User Profile submission
