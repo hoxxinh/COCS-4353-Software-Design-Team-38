@@ -336,17 +336,17 @@ describe('FoodBank Unit Test', () => {
     describe('Volunteer Matching API', () => {
         it('should match a volunteer to an event successfully', (done) => {
             const matchingData = {
-                volunteerId: 'nigel',
-                eventId: 'foodDrive'
+                volunteerId: 2,  // Matches Nigel Hart's user_id
+                eventId: 1       // Matches Food Drive's event_id
             };
 
             chai.request(app)
                 .post('/match')
                 .send(matchingData)
                 .end((err, res) => {
-                    expect(res).to.have.status(200);  // Check if the status is 200 OK
+                    expect(res).to.have.status(200);  // Expect a successful response
                     expect(res.body).to.have.property('message');
-                    expect(res.body.message).to.equal('Volunteer Nigel has been matched to event foodDrive');
+                    expect(res.body.message).to.equal('Volunteer 2 has been matched to event 1');
                     done();
                 });
         });
