@@ -25,6 +25,17 @@ connection.connect((err) => {
     console.log('Connected to database.');
 });
 
+// Gracefully close the connection when the server is stopping
+process.on('SIGINT', () => {
+    connection.end((err) => {
+        if (err) {
+            console.error('Error closing the database connection:', err.stack);
+        } else {
+            console.log('Database connection closed.');
+        }
+        process.exit();
+    });
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -282,9 +293,9 @@ app.get('/volunteer/history', (req, res) => {
 });
 
 
-// Start the server
-app.listen(3000, () => console.log('Server running on port 3000'));
+// Start the server and export the instance
+const server = app.listen(3000, () => console.log('Server running on port 3000'));
 
-export default app;
+export default server;  // Export the server instance for testing
 
 

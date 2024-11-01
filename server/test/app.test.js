@@ -1,20 +1,23 @@
 import { use, expect } from 'chai';  // Import use and expect from chai
 import chaiHttp from 'chai-http';  // Import chai-http for making HTTP requests
+import server from '../app.js';
 import app from '../app.js';  // Import your Express app
-import db from './db.js';
+//import db from './db.js';
 
 // Apply chai-http plugin to chai
 const chai = use(chaiHttp);
-
-describe('FoodBank Unit Test', () => {
-    after((done) => {
-        // Close the database connection after all tests run
-        db.end((err) => {
-            if (err) return console.error('Error closing the connection:', err);
-            console.log('Database connection closed.');
-            done();
+describe('App Tests', () => {
+    it('should return 200 for GET /', (done) => {
+      chai.request(app)
+        .get('/')
+        .end((err, res) => {
+          expect(res).to.have.status(200);
+          done();
         });
     });
+  });
+
+describe('FoodBank Unit Test', () => {
 
     describe('Event Management API', () => {
         describe('POST /createEvent', () => {
@@ -397,4 +400,19 @@ describe('FoodBank Unit Test', () => {
         });
     });
 
+    // after((done) => {
+    //     // Close the database connection after all tests run
+    //     db.end((err) => {
+    //         if (err) return console.error('Error closing the connection:', err);
+    //         console.log('Database connection closed.');
+    //         done();
+    //     });
+    // });
+
+    after((done) => {
+        server.close(() => {
+          console.log('App closed');
+          done();
+        });
+      });
 });
