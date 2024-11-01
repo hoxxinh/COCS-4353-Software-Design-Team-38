@@ -36,8 +36,8 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../html', 'login.html'));
 });
 // Hard-coded data for testing purposes
-//let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
-//let events = [];
+let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
+let events = [];
 
 // Handle User Login
 app.post('/login', (req, res) => {
