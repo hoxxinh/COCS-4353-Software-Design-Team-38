@@ -231,16 +231,19 @@ app.get('/volunteer/history', (req, res) => {
 });
 
 // Volunteer Matching Route
-app.post('/match', (req, res) => {
-    const { volunteerId, eventId } = req.body;
+    app.post('/match', (req, res) => {
+        const { volunteerId, eventId } = req.body;
 
-    // Check if volunteerId and eventId are provided, with specific messages for each
-    if (!volunteerId) {
-        return res.status(400).json({ error: 'Volunteer ID is required' });
-    }
-    if (!eventId) {
-        return res.status(400).json({ error: 'Event ID is required' });
-    }
+        // Check if both volunteerId and eventId are provided, with a specific message if both are missing
+        if (!volunteerId && !eventId) {
+            return res.status(400).json({ error: 'Volunteer ID and Event ID are required' });
+        }
+        if (!volunteerId) {
+            return res.status(400).json({ error: 'Volunteer ID is required' });
+        }
+        if (!eventId) {
+            return res.status(400).json({ error: 'Event ID is required' });
+        }
 
     // First, check if the volunteer exists
     connection.query('SELECT * FROM UserProfile WHERE user_id = ?', [volunteerId], (err, volunteerResults) => {
@@ -283,6 +286,5 @@ app.post('/match', (req, res) => {
 app.listen(3000, () => console.log('Server running on port 3000'));
 
 export default app;
-
 
 
