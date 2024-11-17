@@ -327,6 +327,19 @@ app.get('/volunteer/history', (req, res) => {
     });
 });
 
+// Fetch event data
+app.get('/events', (req, res) => {
+    const sql = 'SELECT event_name, event_description, location, urgency, event_date FROM EventDetails';
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching events:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).json(results);
+    });
+});
+
 
 // Start the server and export the instance
 //const server = 
