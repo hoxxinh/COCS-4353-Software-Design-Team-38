@@ -1,5 +1,6 @@
 import express from 'express';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import path from 'path';
 import mysql from 'mysql';
 import { fileURLToPath } from 'url';
@@ -7,6 +8,7 @@ import cors from 'cors';
 
 
 const app = express();
+const secretKey = 'secret_key';
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
 app.use(cors());
@@ -53,6 +55,24 @@ app.get('/', (req, res) => {
 let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
 let events = [];
 
+// Authenticate token
+function authenticateToken(req, res, next) {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (!token) {
+        return res.status(401).send('Access Denied');
+    }
+
+    jwt.verify(token, secretKey, (err, user) => {
+        if (err) {
+            return res.status(403).send('Invalid Token');
+        }
+        req.user = user; // Attach user info to request
+        next();
+    });
+}
+
 // Handle User Login
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
@@ -87,6 +107,9 @@ app.post('/login', (req, res) => {
         if(!isMatch){
             return res.status(400).send('Invalid username or password!');
         }
+        const token = jwt.sign({ userId: results[0].user_id }, secretKey, { expiresIn: '1h' });
+        //res.json({ token });
+
         res.redirect('userHome.html');
     });
 
