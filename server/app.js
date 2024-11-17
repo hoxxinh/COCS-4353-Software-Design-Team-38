@@ -108,9 +108,9 @@ app.post('/login', (req, res) => {
             return res.status(400).send('Invalid username or password!');
         }
         const token = jwt.sign({ userId: results[0].user_id }, secretKey, { expiresIn: '1h' });
-        //res.json({ token });
+        res.json({ token });
 
-        res.redirect('userHome.html');
+        //res.redirect('userHome.html');
     });
 
     //res.status(200).send("Successfully Logged In");
