@@ -5,6 +5,14 @@
     "mysql2": "^3.11.3"
   },
   "devDependencies": {
+    "concurrently": "^9.1.0",
+    "cors": "^2.8.5",
+    "http-server": "^14.1.1",
     "nyc": "^17.1.0"
+  },
+  "scripts": {
+    "start:frontend": "http-server ./ -p 5500",
+    "start:backend": "node ./server/app.js",
+    "start": "concurrently \"npm run start:frontend\" \"npm run start:backend\""
   }
 }

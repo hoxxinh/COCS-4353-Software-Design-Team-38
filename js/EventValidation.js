@@ -28,20 +28,31 @@ document.getElementById('eventForm').onsubmit = function(event) {
         location: document.getElementById('location').value,
         requiredSkills: Array.from(document.querySelectorAll('#required-skills input[type="checkbox"]:checked')).map(cb => cb.value),
         urgency: document.getElementById('urgency').value,
-        eventDate: document.getElementById('event-date').value
+        eventDate: document.getElementById('event-date').value,
     };
 
-    // Send data to back end
-    fetch('/createEvent', {
+    console.log('Form data:', formData); // Debugging log
+
+    // Send data to the backend
+    fetch('http://localhost:3000/createEvent', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
     })
-    .then(response => response.text())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.text();
+    })
     .then(data => {
+        console.log('Response:', data); // Debugging log
         alert(data);
     })
-    .catch(error => console.error('Error:', error));
+    .catch(error => {
+        console.error('Error:', error);
+        alert(`An error occurred. ${error.message}`);
+    });
 };

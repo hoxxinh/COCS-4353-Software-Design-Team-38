@@ -3,17 +3,20 @@ import bcrypt from 'bcrypt';
 import path from 'path';
 import mysql from 'mysql';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
+
 
 const app = express();
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
+app.use(cors());
 
 // Create a connection to the MySQL database hosted on AWS
 const connection = mysql.createConnection({
-    host: 'group38.cbuiegiyoskb.us-east-2.rds.amazonaws.com',  // AWS RDS endpoint
-    user: 'group38',  // Your MySQL username
-    password: 'COSC4353group38',  // Your MySQL password
-    database: 'FoodBank'  // The name of the database you created
+    host: 'group38.cbuiegiyoskb.us-east-2.rds.amazonaws.com',
+    user: 'group38',
+    password: 'COSC4353group38',
+    database: 'FoodBank'
 });
 
 // Connect to the database
@@ -130,9 +133,8 @@ app.post('/register', async (req, res) => {
 
 // Handle User Profile submission
 app.post('/submitProfile', (req, res) => {
-    const { fullName, address1, address2, city, state, zip, skills, preferences, availability } = req.body;
+    const { fullName, address1, address2, city, state, zipcode, skills, preferences, availability } = req.body;
 
-    // Backend validations
     if (!fullName || fullName.length > 50) {
         return res.status(400).send('Full Name is required and should not exceed 50 characters');
     }
@@ -142,11 +144,11 @@ app.post('/submitProfile', (req, res) => {
     if (!city || city.length > 100) {
         return res.status(400).send('City is required and should not exceed 100 characters');
     }
-    if (!state) {
-        return res.status(400).send('State is required');
+    if (!state || state.length > 10) {
+        return res.status(400).send('State is required and should not exceed 10 characters');
     }
-    if (!zip || zip.length < 5 || zip.length > 9) {
-        return res.status(400).send('Zip code should be between 5-9 characters');
+    if (!zipcode || zipcode.length > 9) {
+        return res.status(400).send('Zipcode is required and should not exceed 9 characters');
     }
     if (!skills || skills.length === 0) {
         return res.status(400).send('At least one skill is required');
@@ -155,13 +157,31 @@ app.post('/submitProfile', (req, res) => {
         return res.status(400).send('At least one availability day is required');
     }
 
-    // Add profile to hard-coded list
-    userProfiles.push({
-        fullName, address1, address2, city, state, zip, skills, preferences, availability
-    });
+    const sql = `
+        INSERT INTO UserProfile (full_name, address1, address2, city, state, zipcode, skills, preferences, availability)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+        fullName,
+        address1,
+        address2 || null,
+        city,
+        state,
+        zipcode,
+        JSON.stringify(skills),
+        preferences || null,
+        JSON.stringify(availability)
+    ];
 
-    res.status(200).send('Profile saved successfully');
+    connection.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Error inserting user profile:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).send('Profile saved successfully');
+    });
 });
+
 
 // Handle Event creation
 app.post('/createEvent', (req, res) => {
@@ -187,12 +207,27 @@ app.post('/createEvent', (req, res) => {
         return res.status(400).send('Event Date is required');
     }
 
-    // Add event to the hard-coded list
-    events.push({
-        eventName, eventDescription, location, requiredSkills, urgency, eventDate
-    });
+    // Insert the event into the database
+    const sql = `
+        INSERT INTO EventDetails (event_name, event_description, location, required_skills, urgency, event_date)
+        VALUES (?, ?, ?, ?, ?, ?)
+    `;
+    const values = [
+        eventName,
+        eventDescription,
+        location,
+        JSON.stringify(requiredSkills),
+        urgency,
+        eventDate
+    ];
 
-    res.status(200).send('Event created successfully');
+    connection.query(sql, values, (err, result) => {
+        if (err) {
+            console.error('Error inserting event data:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).send('Event created successfully');
+    });
 });
 let volunteerHistory = [
     {
@@ -294,8 +329,9 @@ app.get('/volunteer/history', (req, res) => {
 
 
 // Start the server and export the instance
-const server = app.listen(3000, () => console.log('Server running on port 3000'));
+//const server = 
+app.listen(3000, () => console.log('Server running on port 3000'));
 
-export default server;  // Export the server instance for testing
+//export default server;  // Export the server instance for testing
 
 
