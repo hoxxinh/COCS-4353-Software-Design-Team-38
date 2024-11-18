@@ -107,6 +107,7 @@ app.post('/login', (req, res) => {
         if(!isMatch){
             return res.status(400).send('Invalid username or password!');
         }
+        
         const token = jwt.sign({ userId: results[0].user_id }, secretKey, { expiresIn: '1h' });
         res.json({ token });
 
