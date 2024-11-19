@@ -120,7 +120,7 @@ app.post('/login', (req, res) => {
 app.get('/getUserFullName', authenticateToken, (req, res) => {
     const userId = req.user.id;  // Assuming the user ID is in the JWT payload
     // Retrieve the user's full name from the database
-    db.query('SELECT full_name FROM UserProfile WHERE user_id = ?', [userId], (err, results) => {
+    connection.query('SELECT full_name FROM UserProfile WHERE user_id = ?', [userId], (err, results) => {
         if (err) {
             return res.status(500).json({ message: 'Server error' });
         }
