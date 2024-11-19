@@ -37,6 +37,11 @@
                     document.getElementById('welcomeMessage').textContent = 'Error: Full name not found';
                 }
             })
+            .catch(error => {
+        // Handle any errors that occur during the fetch or response processing
+        console.error('There was an error:', error);
+        document.getElementById('welcomeMessage').textContent = 'An error occurred while fetching user data. Please try again later.';
+    });
         }
     </script>
 </body>

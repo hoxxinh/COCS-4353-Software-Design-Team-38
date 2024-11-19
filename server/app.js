@@ -57,21 +57,23 @@ let events = [];
 
 // Authenticate token
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).send('Access Denied');
+    const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+    
+    if (token) {
+        jwt.verify(token, secretKey, (err, user) => {
+            if (err) {
+                return res.status(403).json({ message: 'Forbidden' });
+            }
+            console.log('Decoded JWT payload:', user); // Debugging line
+            req.user = user;
+            console.log('User authenticated:', req.user.id);
+            next();
+        });
+    } else {
+        res.status(401).json({ message: 'No token provided' });
     }
-
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) {
-            return res.status(403).send('Invalid Token');
-        }
-        req.user = user; // Attach user info to request
-        next();
-    });
 }
+
 
 // Handle User Login
 app.post('/login', (req, res) => {
