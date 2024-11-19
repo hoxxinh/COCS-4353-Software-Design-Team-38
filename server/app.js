@@ -117,6 +117,23 @@ app.post('/login', (req, res) => {
     //res.status(200).send("Successfully Logged In");
 });
 
+app.get('/getUserFullName', authenticateToken, (req, res) => {
+    const userId = req.user.id;  // Assuming the user ID is in the JWT payload
+    // Retrieve the user's full name from the database
+    db.query('SELECT full_name FROM UserProfile WHERE user_id = ?', [userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Server error' });
+        }
+        if (results.length > 0) {
+            res.json({ fullName: results[0].fullName });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    });
+});
+
+
+
 // Handles Registering account
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
