@@ -1,3 +1,4 @@
+const { response } = require('express');
 const nodemailer = require('nodemailer');
 
 notificationCount = document.getElementById('notification-count');
@@ -48,6 +49,14 @@ function updateNotificationCount() {
     notificationCount.innerText = newNotificationCount;
 }
 
+setTimeout(() => {
+    fetch('/GetEventStatus')
+    .then(response => response.json())
+    .then(status => {
+        notificationCount.innerText = response;
+    })
+}, 1000);
+
 // Clears all notifications and updates count
 if (clearAllButton) {
     clearAllButton.addEventListener('click', () => {
@@ -55,31 +64,32 @@ if (clearAllButton) {
       Notifications();
       updateNotificationCount();
     });
-  }
-
-// Transporter object using the default SMTP transport for Gmail
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: 'test-email@gmail.com', // Fake email for now
-        pass: 'test-password' // Fake password
-    }
-});
-
-function sendEmail(toEmail, subject, textMessage) {
-    const mailOptions = {
-        from: 'sender-email@gmail.com', 
-        to: toEmail,
-        subject: subject, 
-        text: textMessage,
-    };
-
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Email sent: ' + info.response);
-    });
 }
+
+
+// // Transporter object using the default SMTP transport for Gmail
+// const transporter = nodemailer.createTransport({
+//     service: 'gmail',
+//     auth: {
+//         user: 'test-email@gmail.com', // Fake email for now
+//         pass: 'test-password' // Fake password
+//     }
+// });
+
+// function sendEmail(toEmail, subject, textMessage) {
+//     const mailOptions = {
+//         from: 'sender-email@gmail.com', 
+//         to: toEmail,
+//         subject: subject, 
+//         text: textMessage,
+//     };
+
+//     transporter.sendMail(mailOptions, (error, info) => {
+//         if (error) {
+//             return console.log(error);
+//         }
+//         console.log('Email sent: ' + info.response);
+//     });
+// }
 
   

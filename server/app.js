@@ -8,6 +8,7 @@ import cors from 'cors';
 import PDFDocument from 'pdfkit';
 import fs from 'fs';
 import { createObjectCsvWriter } from 'csv-writer';
+//import { connect } from 'http2';
 
 
 const app = express();
@@ -15,6 +16,7 @@ const secretKey = 'secret_key';
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
 app.use(cors());
+
 
 // Create a connection to the MySQL database hosted on AWS
 const connection = mysql.createConnection({
@@ -48,14 +50,18 @@ process.on('SIGINT', () => {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Setup static file routing
 app.use(express.static(path.join(__dirname, '../html')));
+app.use("/css/", express.static(path.join(__dirname, '../css')));
+app.use("/images/", express.static(path.join(__dirname, '../images')));
+app.use("/js/", express.static(path.join(__dirname, '../js')));
 
 // Serve the default login page when accessing root URL
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../html', 'login.html'));
 });
 // Hard-coded data for testing purposes
-let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
+let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}, {username: "janedoe@gmail.com", password: "test123"}];
 let events = [];
 
 // Authenticate token
@@ -95,7 +101,6 @@ app.post('/login', (req, res) => {
     }*/
 
     // Query database to see if account is valid or not
-    // connection.query('SELECT * FROM loginInfo WHERE username = ?',[username], async(err,results) => {
     connection.query(
         'SELECT ' +
         'id, ' +
@@ -139,9 +144,9 @@ app.post('/login', (req, res) => {
     
         // Redirect based on role and login page
         if (loginType == 'adminLogin' && role === 'Admin') {
-            return res.json({ token, redirect: 'adminHome.html' });
+            return res.json({ token, redirect: 'adminHome.html', user_id: results[0].id });
         } else {
-            return res.json({ token, redirect: 'userHome.html' });
+            return res.json({ token, redirect: 'userHome.html', user_id: results[0].id });
         }
 
         //res.redirect('userHome.html');
@@ -151,7 +156,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/getUserFullName', authenticateToken, (req, res) => {
-    const userId = req.user.userId;  // Assuming the user ID is in the JWT payload
+    const userId = req.query.userId;
     // Retrieve the user's full name from the database
     console.log("Hi: ", userId);
     connection.query('SELECT full_name FROM UserProfile WHERE user_id = ?', [userId], (err, results) => {
@@ -330,6 +335,19 @@ app.get('/volunteer/history', (req, res) => {
     res.status(200).json(volunteerHistory);
 });
 
+// Gets Volunteers 
+app.get('/volunteers', (req, res) => {
+    const sql = 'Select user_id, full_name FROM UserProfile';
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching volunteers:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).json(results);
+    });
+});
+
 // Volunteer History Route
 app.get('/volunteer/history', (req, res) => {
     const { userId } = req.query;  // Expecting a query parameter to identify the volunteer
@@ -403,9 +421,25 @@ app.get('/volunteer/history', (req, res) => {
     });
 });
 
+app.get('/GetEventStatus', (req, res) => {
+    const userId = req.query.userId;
+    const sql = 'SELECT COUNT(1) AS Status_Count FROM VolunteerHistory WHERE user_id = ? AND participation_status = \'Pending\'';
+
+    console.log('UserID: ' + userId);
+    connection.query(sql, [userId], (err, results) => {
+        if (err) {
+            console.error('Error fetching count');
+            return res.status(500).send('Database error');
+        }
+        console.log(results);
+        res.status(200).json({ statusCount: results[0].Status_Count })
+
+    });
+});
+
 // Fetch event data
 app.get('/events', (req, res) => {
-    const sql = 'SELECT event_name, event_description, location, urgency, event_date FROM EventDetails';
+    const sql = 'SELECT * FROM EventDetails';
 
     connection.query(sql, (err, results) => {
         if (err) {
