@@ -42,13 +42,13 @@
                 const response = await fetch('/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password }),
+                    body: JSON.stringify({ username, password, loginType: 'userLogin' }),
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('token', data.token); // Store token securely
-                    window.location.href = 'userHome.html'; // Redirect to user profile
+                    window.location.href = data.redirect; // Redirect to user profile
                 } else {
                     const error = await response.text();
                     alert(error); // Show error to the user

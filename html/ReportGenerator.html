@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generate Reports</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 50px;
+    }
+    h1 {
+      text-align: center;
+    }
+    form {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Generate Reports</h1>
+  <form id="reportForm">
+    <label for="reportType">Select Report Type:</label>
+    <select id="reportType" name="reportType" required>
+      <option value="" disabled selected>Select an option</option>
+      <option value="volunteer">Volunteer Report</option>
+      <option value="event">Event Report</option>
+    </select>
+
+    <label for="format">Select Format:</label>
+    <select id="format" name="format" required>
+      <option value="" disabled selected>Select an option</option>
+      <option value="pdf">PDF</option>
+      <option value="csv">CSV</option>
+    </select>
+
+    <button type="submit">Generate Report</button>
+  </form>
+
+  <script>
+    const form = document.getElementById('reportForm');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      // Collect form data
+      const reportType = document.getElementById('reportType').value;
+      const format = document.getElementById('format').value;
+
+      try {
+        // Send request to the server
+        const response = await fetch(`/report/${format}?reportType=${reportType}`, {
+          method: 'GET',
+        });
+
+        if (response.ok) {
+          // Download the file
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+
+          // Create an anchor to trigger the download
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${reportType}_report.${format}`;
+          document.body.appendChild(a);
+          a.click();
+
+          // Cleanup
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        } else {
+          alert('Error generating report. Please try again.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error generating report. Please check the console for details.');
+      }
+    });
+  </script>
+</body>
+</html>
