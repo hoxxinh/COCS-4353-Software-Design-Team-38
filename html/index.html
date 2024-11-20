@@ -6,42 +6,33 @@
     <title>Main Page</title>
     <link rel="stylesheet" href="../css/SubmitForm.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-
-        .header {
+        /* Action Buttons */
+        .actions button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
             background-color: #007BFF;
             color: white;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .header h1 {
-            margin: 0;
-        }
-
-        .login-btn {
-            background-color: #fff;
-            color: #007BFF;
-            padding: 10px 20px;
             border: none;
             border-radius: 5px;
-            cursor: pointer;
         }
 
-        .login-btn:hover {
-            background-color: #e0e0e0;
+        .actions button:hover {
+            background-color: #0056b3;
         }
 
-        .content {
-            padding: 20px;
+        .actions button[style*="display: none;"] {
+            display: none !important;
         }
 
+        /* Edit View Hidden by Default */
+        .event-edit {
+            display: none; /* Editable view hidden by default */
+        }
+
+        /* Event Cards */
         .event {
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -50,15 +41,14 @@
             background-color: #f9f9f9;
         }
 
-        .event h3 {
-            margin: 0 0 10px;
+        .event p {
+            margin: 5px 0;
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <h1>Welcome to Food Bank</h1>
-        <button class="login-btn" onclick="redirectToLogin()">Login</button>
+        <h1>Welcome to Event Manager</h1>
     </div>
 
     <div class="content">
@@ -69,44 +59,116 @@
     </div>
 
     <script>
-        // Redirect to login page
-        function redirectToLogin() {
-            window.location.href = "login.html"; // Adjust to the correct login page
-        }
+        const userId = 99; // Example user ID, replace with actual logged-in user's ID.
+        const userSkills = ['organization', 'leadership', 'teamwork']; // Example user skills, replace with actual user's skills.
+    
+    // Fetch and display events for users
+    function loadUserEvents() {
+        fetch('http://localhost:3000/events')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch events');
+                }
+                return response.json();
+            })
+            .then(events => {
+                const container = document.getElementById('eventsContainer');
+                container.innerHTML = ''; // Clear previous content
 
-        // Fetch and display events from the database
-        function loadEvents() {
-            fetch('http://localhost:3000/events')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch events');
-                    }
-                    return response.json();
-                })
-                .then(events => {
-                    const container = document.getElementById('eventsContainer');
-                    container.innerHTML = ''; // Clear previous content
-                    events.forEach(event => {
-                        const eventDiv = document.createElement('div');
-                        eventDiv.className = 'event';
-                        eventDiv.innerHTML = `
-                            <h3>${event.event_name}</h3>
-                            <p>${event.event_description}</p>
+                events.forEach(event => {
+                    const eventDiv = document.createElement('div');
+                    eventDiv.className = 'event';
+                    eventDiv.setAttribute('data-id', event.event_id);
+
+                    // Check if the user has already applied
+                    const userAlreadyApplied = event.participants.includes(userId);
+
+                    // Render event details and "Apply" button
+                    eventDiv.innerHTML = `
+                        <div class="event-details">
+                            <p><strong>Event Name:</strong> ${event.event_name}</p>
+                            <p><strong>Event Description:</strong> ${event.event_description}</p>
                             <p><strong>Location:</strong> ${event.location}</p>
                             <p><strong>Urgency:</strong> ${event.urgency}</p>
-                            <p><strong>Date:</strong> ${event.event_date}</p>
-                        `;
-                        container.appendChild(eventDiv);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error fetching events:', error);
-                    document.getElementById('eventsContainer').innerHTML = '<p>Error loading events.</p>';
+                            <p><strong>Event Date:</strong> ${event.event_date.split('T')[0]}</p>
+                            <p><strong>Skill Requirements:</strong> ${event.required_skills.join(', ')}</p>
+                            <p><strong>Participants:</strong> ${event.participant_count}</p>
+                        </div>
+                        <div class="actions">
+                            ${
+                                userAlreadyApplied
+                                    ? '<button class="disabled" disabled>Applied</button>'
+                                    : `<button onclick="applyForEvent(${event.event_id})">Apply</button>`
+                            }
+                        </div>
+                    `;
+                    container.appendChild(eventDiv);
                 });
-        }
+            })
+            .catch(error => {
+                console.error('Error fetching events:', error);
+                document.getElementById('eventsContainer').innerHTML = '<p>Error loading events.</p>';
+            });
+    }
 
+    // Apply for an event
+    function applyForEvent(eventId) {
+        fetch(`http://localhost:3000/events/${eventId}/apply`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: userId,
+                userSkills: userSkills,
+            }),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
+                return response.text();
+            })
+            .then(message => {
+                alert(message);
+                loadUserEvents(); // Reload events to reflect updated participants
+            })
+            .catch(error => {
+                console.error('Error applying for event:', error);
+                alert(error.message);
+            });
+    }
+    
         // Load events on page load
-        window.onload = loadEvents;
+        window.onload = loadUserEvents;
     </script>
+    
+    <style>
+        /* Button Styles */
+        .actions button {
+            display: inline-block;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+    
+        /* Disabled Button Style */
+        .actions button.disabled {
+            background-color: #ccc;
+            color: #666;
+            cursor: not-allowed;
+        }
+    </style>
+    
 </body>
 </html>

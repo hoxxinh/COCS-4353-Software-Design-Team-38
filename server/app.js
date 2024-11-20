@@ -15,7 +15,12 @@ const app = express();
 const secretKey = 'secret_key';
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
-app.use(cors());
+//app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5500', // Specify the frontend URL
+    methods: 'GET,POST',
+    allowedHeaders: 'Content-Type'
+}));
 
 
 // Create a connection to the MySQL database hosted on AWS
@@ -47,8 +52,8 @@ process.on('SIGINT', () => {
     });
 });
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+//const __filename = fileURLToPath(import.meta.url);
+//const __dirname = path.dirname(__filename);
 
 // Setup static file routing
 app.use(express.static(path.join(__dirname, '../html')));
@@ -92,14 +97,6 @@ app.post('/login', (req, res) => {
         return res.status(400).send('Username and password are required');
     }
 
-    /*// Checks if user exists and password is correct
-    const user = userProfiles.find(user => user.username === username && user.password === password);
-    
-
-    if(!user){
-        return res.status(400).send('Invalid username or password!');
-    }*/
-
     // Query database to see if account is valid or not
     connection.query(
         'SELECT ' +
@@ -127,7 +124,7 @@ app.post('/login', (req, res) => {
             return res.status(400).send('Invalid username or password!');
         }
 
-        const hashedPass = results[0].password_hash;
+        const hashedPass = results[0].password;
         // Check if password matches the hashed password in database
         const isMatch = await bcrypt.compare(password, hashedPass);
         if(!isMatch){
@@ -171,25 +168,16 @@ app.get('/getUserFullName', authenticateToken, (req, res) => {
     });
 });
 
-
-
 // Handles Registering account
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
+    console.log('Register route hit');
     if(!username || !password){
         return res.status(400).send('Username and password are required');
     }
 
-    /*const existingUser = userProfiles.find(user => user.username === username);
-    if (existingUser) {
-        return res.status(400).send('User already exists!');
-    }
-    const hashedPassword = await bcrypt.hash(password, 10);
-    userProfiles.push({ username, password: hashedPassword});
-    res.status(200).send("Successfully Registered");*/
-
     // Query table to see if account exists or not
-    connection.query('SELECT * FROM loginInfo WHERE username = ?' ,[username], async(err,results) => {
+    connection.query('SELECT * FROM UserProfile WHERE email = ?' ,[username], async(err,results) => {
         if(err) {
             console.error('ERROR', err);
             return res.status(500).send('Server error');
@@ -201,7 +189,7 @@ app.post('/register', async (req, res) => {
         
         // Hashes password and stores into the table
         const hashedPass = await bcrypt.hash(password,10);
-        connection.query('INSERT INTO loginInfo (username, password_hash) VALUES(?, ?)',[username, hashedPass], (err) => {
+        connection.query('INSERT INTO UserProfile (email, password) VALUES(?, ?)',[username, hashedPass], (err) => {
             if(err) {
                 console.error('Error creating user', err);
                 return res.status(500).send('Server error');
@@ -310,6 +298,142 @@ app.post('/createEvent', (req, res) => {
     });
 
 });
+
+// Fetch event data
+app.get('/events', (req, res) => {
+    const sql = `
+        SELECT 
+            event_id, 
+            event_name, 
+            event_description, 
+            location, 
+            required_skills, 
+            urgency, 
+            event_date, 
+            participants 
+        FROM EventDetails
+    `;
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching events:', err);
+            return res.status(500).send('Database error');
+        }
+
+        // Parse JSON fields and calculate participant count
+        const events = results.map(event => ({
+            ...event,
+            required_skills: event.required_skills ? JSON.parse(event.required_skills) : [],
+            participants: event.participants ? JSON.parse(event.participants) : [],
+            participant_count: event.participants ? JSON.parse(event.participants).length : 0,
+        }));
+
+        res.status(200).json(events);
+    });
+});
+
+
+//Update events
+app.put('/events/:id', (req, res) => {
+    const eventId = req.params.id;
+    const { event_name, event_description, location, urgency, event_date, required_skills } = req.body;
+
+    if (!event_name || !event_description || !location || !urgency || !event_date || !required_skills) {
+        return res.status(400).send('All fields are required');
+    }
+
+    const sql = `
+        UPDATE EventDetails
+        SET event_name = ?, event_description = ?, location = ?, urgency = ?, event_date = ?, required_skills = ?
+        WHERE event_id = ?
+    `;
+    connection.query(
+        sql,
+        [event_name, event_description, location, urgency, event_date, JSON.stringify(required_skills), eventId],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating event:', err);
+                return res.status(500).send('Database error');
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).send('Event not found');
+            }
+            res.status(200).send('Event updated successfully');
+        }
+    );
+});
+
+
+
+//Remove events
+app.delete('/events/:id', (req, res) => {
+    const eventId = req.params.id;
+
+    const sql = 'DELETE FROM EventDetails WHERE event_id = ?';
+    connection.query(sql, [eventId], (err, result) => {
+        if (err) {
+            console.error('Error deleting event:', err);
+            return res.status(500).send('Database error');
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).send('Event not found');
+        }
+        res.status(200).send('Event deleted successfully');
+    });
+});
+
+//Apply for Event
+app.post('/events/:id/apply', (req, res) => {
+    const eventId = req.params.id;
+    const { userId, userSkills } = req.body;
+
+    // Fetch the event's required skills and participants
+    const sqlFetch = `
+        SELECT required_skills, participants
+        FROM EventDetails
+        WHERE event_id = ?
+    `;
+    connection.query(sqlFetch, [eventId], (err, results) => {
+        if (err) {
+            console.error('Error fetching event details:', err);
+            return res.status(500).send('Database error');
+        }
+        if (results.length === 0) {
+            return res.status(404).send('Event not found');
+        }
+
+        const event = results[0];
+        const requiredSkills = JSON.parse(event.required_skills || '[]');
+        const participants = JSON.parse(event.participants || '[]');
+
+        // Check if user's skills match the required skills
+        const hasRequiredSkills = requiredSkills.every(skill => userSkills.includes(skill));
+        if (!hasRequiredSkills) {
+            return res.status(400).send('You do not meet the required skills for this event.');
+        }
+
+        // Check if user is already a participant
+        if (participants.includes(userId)) {
+            return res.status(400).send('You have already applied for this event.');
+        }
+
+        // Add the user to the participants list
+        participants.push(userId);
+        const sqlUpdate = `
+            UPDATE EventDetails
+            SET participants = ?
+            WHERE event_id = ?
+        `;
+        connection.query(sqlUpdate, [JSON.stringify(participants), eventId], (updateErr) => {
+            if (updateErr) {
+                console.error('Error updating participants:', updateErr);
+                return res.status(500).send('Database error');
+            }
+            res.status(200).send('Successfully applied for the event.');
+        });
+    });
+});
+
 let volunteerHistory = [
     {
         eventName: 'Food Drive',
