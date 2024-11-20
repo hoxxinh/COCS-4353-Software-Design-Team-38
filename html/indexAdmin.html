@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Main Page</title>
+    <link rel="stylesheet" href="../css/SubmitForm.css">
+    <style>
+        /* Action Buttons */
+        .actions button {
+            display: inline-block;
+            margin: 5px;
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        .actions button:hover {
+            background-color: #0056b3;
+        }
+
+        .actions button[style*="display: none;"] {
+            display: none !important;
+        }
+
+        /* Edit View Hidden by Default */
+        .event-edit {
+            display: none; /* Editable view hidden by default */
+        }
+
+        /* Event Cards */
+        .event {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+
+        .event p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Welcome to Event Manager</h1>
+    </div>
+
+    <div class="content">
+        <h2>Current Events</h2>
+        <div id="eventsContainer">
+            <!-- Events will be dynamically loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Fetch and display events from the database
+        function loadEvents() {
+            fetch('http://localhost:3000/events')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch events');
+                    }
+                    return response.json();
+                })
+                .then(events => {
+                    const container = document.getElementById('eventsContainer');
+                    container.innerHTML = ''; // Clear previous content
+
+                    events.forEach(event => {
+                        const eventDiv = document.createElement('div');
+                        eventDiv.className = 'event';
+                        eventDiv.setAttribute('data-id', event.event_id);
+
+                        eventDiv.innerHTML = `
+                            <div class="event-details">
+                                <p><strong>Event Name:</strong> <span class="event-name-display">${event.event_name}</span></p>
+                                <p><strong>Event Description:</strong> <span class="event-description-display">${event.event_description}</span></p>
+                                <p><strong>Location:</strong> <span class="event-location-display">${event.location}</span></p>
+                                <p><strong>Urgency:</strong> <span class="event-urgency-display">${event.urgency}</span></p>
+                                <p><strong>Event Date:</strong> <span class="event-date-display">${event.event_date.split('T')[0]}</span></p>
+                            </div>
+                            <div class="event-edit" style="display: none;">
+                                <label>Event Name:</label>
+                                <input type="text" class="event-name" value="${event.event_name}"><br>
+                                <label>Event Description:</label>
+                                <textarea class="event-description">${event.event_description}</textarea><br>
+                                <label>Location:</label>
+                                <input type="text" class="event-location" value="${event.location}"><br>
+                                <label>Urgency:</label>
+                                <select class="event-urgency">
+                                    <option value="low" ${event.urgency === 'low' ? 'selected' : ''}>Low</option>
+                                    <option value="medium" ${event.urgency === 'medium' ? 'selected' : ''}>Medium</option>
+                                    <option value="high" ${event.urgency === 'high' ? 'selected' : ''}>High</option>
+                                </select><br>
+                                <label>Event Date:</label>
+                                <input type="date" class="event-date" value="${event.event_date.split('T')[0]}"><br>
+                            </div>
+                            <div class="actions">
+                                <button onclick="editEvent(this)">Edit</button>
+                                <button onclick="saveEvent(this)" style="display:none;">Save</button>
+                                <button onclick="cancelEdit(this)" style="display:none;">Cancel</button>
+                                <button onclick="removeEvent(${event.event_id})">Remove</button>
+                            </div>
+                        `;
+                        container.appendChild(eventDiv);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching events:', error);
+                    document.getElementById('eventsContainer').innerHTML = '<p>Error loading events.</p>';
+                });
+        }
+
+        // Edit an event
+        function editEvent(button) {
+            const eventDiv = button.closest('.event');
+            eventDiv.querySelector('.event-details').style.display = 'none'; // Hide display view
+            eventDiv.querySelector('.event-edit').style.display = 'block'; // Show edit fields
+
+            button.style.display = 'none'; // Hide "Edit" button
+            eventDiv.querySelector('button[onclick="saveEvent(this)"]').style.display = 'inline-block'; // Show "Save" button
+            eventDiv.querySelector('button[onclick="cancelEdit(this)"]').style.display = 'inline-block'; // Show "Cancel" button
+        }
+
+        // Save changes to an event
+        function saveEvent(button) {
+            const eventDiv = button.closest('.event');
+            const eventId = eventDiv.getAttribute('data-id');
+
+            // Get updated values
+            const updatedEvent = {
+                event_name: eventDiv.querySelector('.event-name').value,
+                event_description: eventDiv.querySelector('.event-description').value,
+                location: eventDiv.querySelector('.event-location').value,
+                urgency: eventDiv.querySelector('.event-urgency').value,
+                event_date: eventDiv.querySelector('.event-date').value,
+            };
+
+            fetch(`http://localhost:3000/events/${eventId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedEvent),
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to update event');
+                    }
+                    return response.text();
+                })
+                .then(message => {
+                    alert(message);
+                    loadEvents(); // Reload events after saving
+                })
+                .catch(error => {
+                    console.error('Error updating event:', error);
+                    alert('Failed to update the event.');
+                });
+        }
+
+        // Cancel editing
+        function cancelEdit(button) {
+            const eventDiv = button.closest('.event');
+            eventDiv.querySelector('.event-details').style.display = 'block'; // Show display view
+            eventDiv.querySelector('.event-edit').style.display = 'none'; // Hide edit fields
+
+            eventDiv.querySelector('button[onclick="editEvent(this)"]').style.display = 'inline-block'; // Show "Edit" button
+            eventDiv.querySelector('button[onclick="saveEvent(this)"]').style.display = 'none'; // Hide "Save" button
+            button.style.display = 'none'; // Hide "Cancel" button
+        }
+
+        // Remove an event
+        function removeEvent(eventId) {
+            if (confirm('Are you sure you want to delete this event?')) {
+                fetch(`http://localhost:3000/events/${eventId}`, {
+                    method: 'DELETE',
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Failed to delete event');
+                        }
+                        return response.text();
+                    })
+                    .then(message => {
+                        alert(message);
+                        loadEvents(); // Reload events after deletion
+                    })
+                    .catch(error => {
+                        console.error('Error deleting event:', error);
+                        alert('Failed to delete the event.');
+                    });
+            }
+        }
+
+        // Load events on page load
+        window.onload = loadEvents;
+    </script>
+</body>
+</html>

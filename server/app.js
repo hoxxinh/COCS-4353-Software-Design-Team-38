@@ -272,6 +272,68 @@ app.post('/createEvent', (req, res) => {
         res.status(200).send('Event created successfully');
     });
 });
+
+// Fetch event data
+app.get('/events', (req, res) => {
+    const sql = 'SELECT event_id, event_name, event_description, location, urgency, event_date FROM EventDetails';
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching events:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).json(results);
+    });
+});
+
+//Update events
+app.put('/events/:id', (req, res) => {
+    const eventId = req.params.id;
+    const { event_name, event_description, location, urgency, event_date } = req.body;
+
+    if (!event_name || !event_description || !location || !urgency || !event_date) {
+        return res.status(400).send('All fields are required');
+    }
+
+    const sql = `
+        UPDATE EventDetails
+        SET event_name = ?, event_description = ?, location = ?, urgency = ?, event_date = ?
+        WHERE event_id = ?
+    `;
+    connection.query(
+        sql,
+        [event_name, event_description, location, urgency, event_date, eventId],
+        (err, result) => {
+            if (err) {
+                console.error('Error updating event:', err);
+                return res.status(500).send('Database error');
+            }
+            if (result.affectedRows === 0) {
+                return res.status(404).send('Event not found');
+            }
+            res.status(200).send('Event updated successfully');
+        }
+    );
+});
+
+
+//Remove events
+app.delete('/events/:id', (req, res) => {
+    const eventId = req.params.id;
+
+    const sql = 'DELETE FROM EventDetails WHERE event_id = ?';
+    connection.query(sql, [eventId], (err, result) => {
+        if (err) {
+            console.error('Error deleting event:', err);
+            return res.status(500).send('Database error');
+        }
+        if (result.affectedRows === 0) {
+            return res.status(404).send('Event not found');
+        }
+        res.status(200).send('Event deleted successfully');
+    });
+});
+
 let volunteerHistory = [
     {
         eventName: 'Food Drive',
@@ -369,20 +431,6 @@ app.get('/volunteer/history', (req, res) => {
         });
     });
 });
-
-// Fetch event data
-app.get('/events', (req, res) => {
-    const sql = 'SELECT event_name, event_description, location, urgency, event_date FROM EventDetails';
-
-    connection.query(sql, (err, results) => {
-        if (err) {
-            console.error('Error fetching events:', err);
-            return res.status(500).send('Database error');
-        }
-        res.status(200).json(results);
-    });
-});
-
 
 // Start the server and export the instance
 //const server = 
