@@ -52,8 +52,8 @@ process.on('SIGINT', () => {
     });
 });
 
-//const __filename = fileURLToPath(import.meta.url);
-//const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Setup static file routing
 app.use(express.static(path.join(__dirname, '../html')));
@@ -124,7 +124,7 @@ app.post('/login', (req, res) => {
             return res.status(400).send('Invalid username or password!');
         }
 
-        const hashedPass = results[0].password;
+        const hashedPass = results[0].password_hash;
         // Check if password matches the hashed password in database
         const isMatch = await bcrypt.compare(password, hashedPass);
         if(!isMatch){
