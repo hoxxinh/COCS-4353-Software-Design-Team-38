@@ -60,21 +60,22 @@ let events = [];
 
 // Authenticate token
 function authenticateToken(req, res, next) {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
-
-    if (!token) {
-        return res.status(401).send('Access Denied');
+    const token = req.headers['authorization'] && req.headers['authorization'].split(' ')[1];
+    
+    if (token) {
+        jwt.verify(token, secretKey, (err, user) => {
+            if (err) {
+                return res.status(403).json({ message: 'Forbidden' });
+            }
+            console.log('Decoded JWT payload:', user); // Debugging line
+            req.user = user;
+            next();
+        });
+    } else {
+        res.status(401).json({ message: 'No token provided' });
     }
-
-    jwt.verify(token, secretKey, (err, user) => {
-        if (err) {
-            return res.status(403).send('Invalid Token');
-        }
-        req.user = user; // Attach user info to request
-        next();
-    });
 }
+
 
 // Handle User Login
 app.post('/login', (req, res) => {
@@ -116,7 +117,7 @@ app.post('/login', (req, res) => {
             console.error('ERROR', err);
             return res.status(500).send('Server error');
         }
-
+        console.log('Query Results:', results);
         if(results.length === 0) {
             return res.status(400).send('Invalid username or password!');
         }
@@ -148,6 +149,24 @@ app.post('/login', (req, res) => {
 
     //res.status(200).send("Successfully Logged In");
 });
+
+app.get('/getUserFullName', authenticateToken, (req, res) => {
+    const userId = req.user.userId;  // Assuming the user ID is in the JWT payload
+    // Retrieve the user's full name from the database
+    console.log("Hi: ", userId);
+    connection.query('SELECT full_name FROM UserProfile WHERE user_id = ?', [userId], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Server error' });
+        }
+        if (results.length > 0) {
+            res.json({ fullName: results[0].full_name });
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    });
+});
+
+
 
 // Handles Registering account
 app.post('/register', async (req, res) => {

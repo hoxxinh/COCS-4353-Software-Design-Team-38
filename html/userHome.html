@@ -6,15 +6,43 @@
     <title>User Home Page</title>
     <h2>User Home Page</h2>
 </head>
+<body>
+    <section>
+        <p id="welcomeMessage">Loading...</p>
+        <p>Navigation Portal</p>
+        <ul>
+            <li><a href="notif.html">Notifications</a></li>
+            <li><a href="UserProfile.html">Change profile information</a></li>
+            <li><a href="VolunteerHistory.html">Volunteer History</a></li>
+        </ul>
+    </section>
 
-<section>
-    <p>
-        Navigation Portal
-    </p>
-    <ul>
-        <li><a href="notif.html">Notifications</a></li>
-        <li><a href="UserProfile.html">Change profile information</a></li>
-        <li><a href="VolunteerHistory.html">Volunteer History</a></li>
-    </ul>
-    
-</section>
+    <script>
+        // Fetch the token from localStorage
+        const token = localStorage.getItem('token');
+        
+        if (token) {
+            fetch('/getUserFullName', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+            .then(response => response.json())  // Parse the JSON data
+            .then(data => {
+                // Check if fullName exists in the response data
+                if (data.fullName) {
+                    document.getElementById('welcomeMessage').textContent = `Welcome, ${data.fullName}`;
+                } else {
+                    document.getElementById('welcomeMessage').textContent = 'Error: Full name not found';
+                }
+            })
+            .catch(error => {
+        // Handle any errors that occur during the fetch or response processing
+        console.error('There was an error:', error);
+        document.getElementById('welcomeMessage').textContent = 'An error occurred while fetching user data. Please try again later.';
+    });
+        }
+    </script>
+</body>
+</html>
