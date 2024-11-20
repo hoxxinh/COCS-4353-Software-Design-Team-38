@@ -19,11 +19,20 @@
     "chai": "^5.1.2",
     "chai-http": "^4.4.0",
     "cors": "^2.8.5",
+    "csv-writer": "^1.6.0",
     "express": "^4.21.1",
     "file-url-to-path": "^1.0.0",
     "jsonwebtoken": "^9.0.2",
     "mocha": "^10.8.2",
     "mysql": "^2.18.1",
+    "mysql2": "^3.11.4",
+    "path": "^0.12.7",
+    "pdfkit": "^0.15.1"
+  },
+  "devDependencies": {
+    "chai": "^5.1.2",
+    "chai-http": "^4.4.0",
+    "mocha": "^10.8.2",
     "nyc": "^17.1.0",
     "path": "^0.12.7",
     "sinon": "^19.0.2"

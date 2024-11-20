@@ -8,8 +8,39 @@
 </head>
 
 <section>
+    <p id="welcomeMessage">Loading...</p>
+        <p>Navigation Portal</p>
     <ul>
         <li><a href="EventManagement.html">Event Management</a></li>
         <li><a href="VolunteerMatchingForm.html">Volunteer Matching Form</a></li>
+        <li><a href="ReportGenerator.html">Volunteer Matching Form</a></li>
     </ul>
 </section>
+
+<script>
+    // Fetch the token from localStorage
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+        fetch('/getUserFullName', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => response.json())  // Parse the JSON data
+        .then(data => {
+            // Check if fullName exists in the response data
+            if (data.fullName) {
+                document.getElementById('welcomeMessage').textContent = `Welcome, ${data.fullName}`;
+            } else {
+                document.getElementById('welcomeMessage').textContent = 'Error: Full name not found';
+            }
+        })
+        .catch(error => {
+    // Handle any errors that occur during the fetch or response processing
+    console.error('There was an error:', error);
+    document.getElementById('welcomeMessage').textContent = 'An error occurred while fetching user data. Please try again later.';
+});
+    }
+</script>

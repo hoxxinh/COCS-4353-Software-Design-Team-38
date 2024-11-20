@@ -74,8 +74,8 @@
                     const volunteerSelect = document.getElementById('volunteerName');
                     volunteers.forEach(volunteer => {
                         const option = document.createElement('option');
-                        option.value = volunteer.id;
-                        option.text = volunteer.name;
+                        option.value = volunteer.user_id;
+                        option.text = volunteer.full_name;
                         volunteerSelect.add(option);
                     });
                 })
@@ -85,11 +85,12 @@
             fetch('/events')
                 .then(response => response.json())
                 .then(events => {
+                    console.log(events);
                     const eventSelect = document.getElementById('eventName');
                     events.forEach(event => {
                         const option = document.createElement('option');
-                        option.value = event.id;
-                        option.text = event.name;
+                        option.value = event.event_id;
+                        option.text = event.event_name;
                         eventSelect.add(option);
                     });
                 })

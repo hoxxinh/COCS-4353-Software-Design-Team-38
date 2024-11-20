@@ -5,6 +5,10 @@ import path from 'path';
 import mysql from 'mysql';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import { createObjectCsvWriter } from 'csv-writer';
+//import { connect } from 'http2';
 
 
 const app = express();
@@ -51,14 +55,18 @@ process.on('SIGINT', () => {
 //const __filename = fileURLToPath(import.meta.url);
 //const __dirname = path.dirname(__filename);
 
-//app.use(express.static(path.join(__dirname, '../html')));
+// Setup static file routing
+app.use(express.static(path.join(__dirname, '../html')));
+app.use("/css/", express.static(path.join(__dirname, '../css')));
+app.use("/images/", express.static(path.join(__dirname, '../images')));
+app.use("/js/", express.static(path.join(__dirname, '../js')));
 
 // Serve the default login page when accessing root URL
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, '../html', 'login.html'));
 });
 // Hard-coded data for testing purposes
-let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}];
+let userProfiles = [{username: "johndoe@gmail.com", password: "hello123"}, {username: "janedoe@gmail.com", password: "test123"}];
 let events = [];
 
 // Authenticate token
@@ -82,7 +90,7 @@ function authenticateToken(req, res, next) {
 
 // Handle User Login
 app.post('/login', (req, res) => {
-    const { username, password } = req.body;
+    const { username, password, loginType } = req.body;
 
     // Validate input
     if(!username || !password) {
@@ -90,7 +98,23 @@ app.post('/login', (req, res) => {
     }
 
     // Query database to see if account is valid or not
-    connection.query('SELECT * FROM UserProfile WHERE email = ?',[username], async(err,results) => {
+    connection.query(
+        'SELECT ' +
+        'id, ' +
+	    'l.username, ' +
+        'l.password_hash, ' +
+	    'p.user_id, ' +
+        'p.full_name, ' +
+        'IFNULL(u.role_name, \'User\') AS role_name ' +
+        'FROM loginInfo AS l ' +
+        'LEFT JOIN UserProfile AS p ' +
+        'ON l.username = p.email ' +
+        'LEFT JOIN UserProfileToUserRole p2r ' +
+        'ON p.user_id = p2r.user_id ' +
+        'LEFT JOIN UserRole u ' +
+        'ON p2r.role_id = u.role_id ' +
+        'WHERE username = ?', [username], async(err,results) => {
+
         if(err) {
             console.error('ERROR', err);
             return res.status(500).send('Server error');
@@ -106,9 +130,21 @@ app.post('/login', (req, res) => {
         if(!isMatch){
             return res.status(400).send('Invalid username or password!');
         }
-        
-        const token = jwt.sign({ userId: results[0].id }, secretKey, { expiresIn: '1h' });
-        res.json({ token });
+
+        // Extract role
+        const role = results[0].role_name;
+
+        const token = jwt.sign({ role }, secretKey, { expiresIn: '1h' });
+        if (loginType === 'adminLogin' && role !== 'Admin') {
+            return res.status(403).send('Only admins can log in through this page.');
+        }
+    
+        // Redirect based on role and login page
+        if (loginType == 'adminLogin' && role === 'Admin') {
+            return res.json({ token, redirect: 'adminHome.html', user_id: results[0].id });
+        } else {
+            return res.json({ token, redirect: 'userHome.html', user_id: results[0].id });
+        }
 
         //res.redirect('userHome.html');
     });
@@ -117,7 +153,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/getUserFullName', authenticateToken, (req, res) => {
-    const userId = req.user.userId;  // Assuming the user ID is in the JWT payload
+    const userId = req.query.userId;
     // Retrieve the user's full name from the database
     console.log("Hi: ", userId);
     connection.query('SELECT full_name FROM UserProfile WHERE user_id = ?', [userId], (err, results) => {
@@ -219,7 +255,7 @@ app.post('/submitProfile', (req, res) => {
 app.post('/createEvent', (req, res) => {
     const { eventName, eventDescription, location, requiredSkills, urgency, eventDate } = req.body;
 
-    // Back-end validations
+    //Back-end validations
     if (!eventName || eventName.length > 100) {
         return res.status(400).send('Event Name is required and should not exceed 100 characters');
     }
@@ -260,6 +296,7 @@ app.post('/createEvent', (req, res) => {
         }
         res.status(200).send('Event created successfully');
     });
+
 });
 
 // Fetch event data
@@ -424,6 +461,19 @@ app.get('/volunteer/history', (req, res) => {
     res.status(200).json(volunteerHistory);
 });
 
+// Gets Volunteers 
+app.get('/volunteers', (req, res) => {
+    const sql = 'Select user_id, full_name FROM UserProfile';
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching volunteers:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).json(results);
+    });
+});
+
 // Volunteer History Route
 app.get('/volunteer/history', (req, res) => {
     const { userId } = req.query;  // Expecting a query parameter to identify the volunteer
@@ -493,6 +543,68 @@ app.get('/volunteer/history', (req, res) => {
                     res.status(200).json({ message: `Volunteer ${volunteerId} has been matched to event ${eventId}` });
                 }
             );
+        });
+    });
+});
+
+app.get('/GetEventStatus', (req, res) => {
+    const userId = req.query.userId;
+    const sql = 'SELECT COUNT(1) AS Status_Count FROM VolunteerHistory WHERE user_id = ? AND participation_status = \'Pending\'';
+
+    console.log('UserID: ' + userId);
+    connection.query(sql, [userId], (err, results) => {
+        if (err) {
+            console.error('Error fetching count');
+            return res.status(500).send('Database error');
+        }
+        console.log(results);
+        res.status(200).json({ statusCount: results[0].Status_Count })
+
+    });
+});
+
+// Fetch event data
+app.get('/events', (req, res) => {
+    const sql = 'SELECT * FROM EventDetails';
+
+    connection.query(sql, (err, results) => {
+        if (err) {
+            console.error('Error fetching events:', err);
+            return res.status(500).send('Database error');
+        }
+        res.status(200).json(results);
+    });
+});
+
+// Endpoint to generate CSV report
+app.get('/report/csv', (req, res) => {
+    const filePath = 'volunteer_report.csv';
+
+    // Fetch data from the database
+    connection.query('SELECT * FROM VolunteerHistory', (err, historyResults) => {
+        if (err) {
+            console.error('Error fetching volunteer history:', err);
+            return res.status(500).send('Database error');
+        }
+
+        const csvWriter = createObjectCsvWriter({
+            path: filePath,
+            header: [
+                { id: 'event_id', title: 'Event ID' },
+                { id: 'user_id', title: 'User ID' },
+                { id: 'participation_status', title: 'Status' },
+                { id: 'feedback', title: 'Feedback' },
+            ],
+        });
+
+        csvWriter.writeRecords(historyResults).then(() => {
+            // Send file to client
+            res.download(filePath, 'volunteer_report.csv', (err) => {
+                if (err) {
+                    console.error('Error sending file:', err);
+                }
+                fs.unlinkSync(filePath); // Clean up file after sending
+            });
         });
     });
 });
