@@ -15,13 +15,13 @@ const app = express();
 const secretKey = 'secret_key';
 app.use(express.json()); // To parse JSON requests
 app.use(express.urlencoded({ extended: true })); // To parse form data
-//app.use(cors());
-app.use(cors({
-    origin: 'http://localhost:5500', // Specify the frontend URL
-    methods: 'GET,POST',
-    allowedHeaders: 'Content-Type'
-}));
 
+// CORS configuration
+app.use(cors({
+    origin: 'http://localhost:5500', // Allow requests from the frontend
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], // Allow specific methods
+    allowedHeaders: ['Content-Type'], // Allow specific headers
+}));
 
 // Create a connection to the MySQL database hosted on AWS
 const connection = mysql.createConnection({
@@ -338,6 +338,8 @@ app.put('/events/:id', (req, res) => {
     const eventId = req.params.id;
     const { event_name, event_description, location, urgency, event_date, required_skills } = req.body;
 
+    console.log('PUT Request Body:', req.body);
+
     if (!event_name || !event_description || !location || !urgency || !event_date || !required_skills) {
         return res.status(400).send('All fields are required');
     }
@@ -351,6 +353,7 @@ app.put('/events/:id', (req, res) => {
         sql,
         [event_name, event_description, location, urgency, event_date, JSON.stringify(required_skills), eventId],
         (err, result) => {
+
             if (err) {
                 console.error('Error updating event:', err);
                 return res.status(500).send('Database error');
@@ -363,14 +366,13 @@ app.put('/events/:id', (req, res) => {
     );
 });
 
-
-
 //Remove events
 app.delete('/events/:id', (req, res) => {
     const eventId = req.params.id;
 
     const sql = 'DELETE FROM EventDetails WHERE event_id = ?';
     connection.query(sql, [eventId], (err, result) => {
+
         if (err) {
             console.error('Error deleting event:', err);
             return res.status(500).send('Database error');
