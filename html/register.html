@@ -8,7 +8,7 @@
 </head>
 <body>
     <section>
-        <form action="/register" method="post">
+        <form id="register">
             <!-- Email Input -->
             <div>
                 <label for="username">Please enter a valid email:</label>
@@ -23,9 +23,38 @@
 
             <!-- Submit Button -->
             <div>
-                <button type="submit">Submit</button>
+                <button type="submit">Register</button>
             </div>
         </form>
     </section>
+
+    <script>
+        document.getElementById('register').addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            console.log("HI");
+
+            try {
+                const response = await fetch('http://localhost:3000/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    alert('Registration successful!');
+                    window.location.href = 'login.html'; // Redirect after successful registration
+                } else {
+                    const error = await response.text();
+                    alert(error); // Show error message from the backend
+                }
+            } catch (error) {
+                console.error('Registration error:', error);
+                alert('An error occurred during registration. Please try again.');
+            }
+        });
+    </script>
 </body>
 </html>
