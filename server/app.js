@@ -275,34 +275,55 @@ app.post('/createEvent', (req, res) => {
 
 // Fetch event data
 app.get('/events', (req, res) => {
-    const sql = 'SELECT event_id, event_name, event_description, location, urgency, event_date FROM EventDetails';
+    const sql = `
+        SELECT 
+            event_id, 
+            event_name, 
+            event_description, 
+            location, 
+            required_skills, 
+            urgency, 
+            event_date, 
+            participants 
+        FROM EventDetails
+    `;
 
     connection.query(sql, (err, results) => {
         if (err) {
             console.error('Error fetching events:', err);
             return res.status(500).send('Database error');
         }
-        res.status(200).json(results);
+
+        // Parse JSON fields and calculate participant count
+        const events = results.map(event => ({
+            ...event,
+            required_skills: event.required_skills ? JSON.parse(event.required_skills) : [],
+            participants: event.participants ? JSON.parse(event.participants) : [],
+            participant_count: event.participants ? JSON.parse(event.participants).length : 0,
+        }));
+
+        res.status(200).json(events);
     });
 });
+
 
 //Update events
 app.put('/events/:id', (req, res) => {
     const eventId = req.params.id;
-    const { event_name, event_description, location, urgency, event_date } = req.body;
+    const { event_name, event_description, location, urgency, event_date, required_skills } = req.body;
 
-    if (!event_name || !event_description || !location || !urgency || !event_date) {
+    if (!event_name || !event_description || !location || !urgency || !event_date || !required_skills) {
         return res.status(400).send('All fields are required');
     }
 
     const sql = `
         UPDATE EventDetails
-        SET event_name = ?, event_description = ?, location = ?, urgency = ?, event_date = ?
+        SET event_name = ?, event_description = ?, location = ?, urgency = ?, event_date = ?, required_skills = ?
         WHERE event_id = ?
     `;
     connection.query(
         sql,
-        [event_name, event_description, location, urgency, event_date, eventId],
+        [event_name, event_description, location, urgency, event_date, JSON.stringify(required_skills), eventId],
         (err, result) => {
             if (err) {
                 console.error('Error updating event:', err);
@@ -315,6 +336,7 @@ app.put('/events/:id', (req, res) => {
         }
     );
 });
+
 
 
 //Remove events
@@ -331,6 +353,58 @@ app.delete('/events/:id', (req, res) => {
             return res.status(404).send('Event not found');
         }
         res.status(200).send('Event deleted successfully');
+    });
+});
+
+//Apply for Event
+app.post('/events/:id/apply', (req, res) => {
+    const eventId = req.params.id;
+    const { userId, userSkills } = req.body;
+
+    // Fetch the event's required skills and participants
+    const sqlFetch = `
+        SELECT required_skills, participants
+        FROM EventDetails
+        WHERE event_id = ?
+    `;
+    connection.query(sqlFetch, [eventId], (err, results) => {
+        if (err) {
+            console.error('Error fetching event details:', err);
+            return res.status(500).send('Database error');
+        }
+        if (results.length === 0) {
+            return res.status(404).send('Event not found');
+        }
+
+        const event = results[0];
+        const requiredSkills = JSON.parse(event.required_skills || '[]');
+        const participants = JSON.parse(event.participants || '[]');
+
+        // Check if user's skills match the required skills
+        const hasRequiredSkills = requiredSkills.every(skill => userSkills.includes(skill));
+        if (!hasRequiredSkills) {
+            return res.status(400).send('You do not meet the required skills for this event.');
+        }
+
+        // Check if user is already a participant
+        if (participants.includes(userId)) {
+            return res.status(400).send('You have already applied for this event.');
+        }
+
+        // Add the user to the participants list
+        participants.push(userId);
+        const sqlUpdate = `
+            UPDATE EventDetails
+            SET participants = ?
+            WHERE event_id = ?
+        `;
+        connection.query(sqlUpdate, [JSON.stringify(participants), eventId], (updateErr) => {
+            if (updateErr) {
+                console.error('Error updating participants:', updateErr);
+                return res.status(500).send('Database error');
+            }
+            res.status(200).send('Successfully applied for the event.');
+        });
     });
 });
 
